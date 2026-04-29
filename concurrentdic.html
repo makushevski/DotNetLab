@@ -1,0 +1,1445 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ConcurrentDictionary<TKey,TValue> visual lab</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0e1317;
+      --panel: #151c23;
+      --panel-2: #1c2630;
+      --text: #edf4f8;
+      --muted: #9fb0be;
+      --line: #354656;
+      --accent: #43c6ac;
+      --accent-2: #f0bd62;
+      --danger: #ff6b6b;
+      --info: #7fb3ff;
+      --shadow: 0 18px 42px rgba(0, 0, 0, 0.26);
+      --radius: 8px;
+      font-family: Inter, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, rgba(18, 27, 34, 0.96), rgba(11, 15, 19, 0.98)),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 72px);
+      color: var(--text);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: #202b35;
+      color: var(--text);
+      border-radius: 7px;
+      cursor: pointer;
+      transition: transform 150ms ease, border-color 150ms ease, background 150ms ease, opacity 150ms ease;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: #587083;
+      background: #283643;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    input {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 9px 11px;
+      background: #0f151b;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(67, 198, 172, 0.12);
+    }
+
+    a {
+      color: #9fd3ff;
+    }
+
+    .app {
+      width: min(1500px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 22px 0 30px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(34px, 4vw, 64px);
+      line-height: 0.98;
+    }
+
+    .hero-copy {
+      margin-top: 10px;
+      max-width: 920px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    .nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: end;
+    }
+
+    .nav a {
+      min-height: 36px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #151d25;
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 800;
+    }
+
+    .nav a.active {
+      border-color: rgba(67, 198, 172, 0.75);
+      color: var(--text);
+      background: rgba(67, 198, 172, 0.13);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(160px, 1fr) minmax(160px, 1fr) 130px auto auto auto;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 14px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(21, 28, 35, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .primary-action {
+      min-height: 40px;
+      min-width: 90px;
+      padding: 0 16px;
+      background: var(--accent);
+      border-color: rgba(67, 198, 172, 0.7);
+      color: #06241e;
+      font-weight: 900;
+    }
+
+    .secondary-action {
+      min-height: 40px;
+      padding: 0 13px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .workbench {
+      display: grid;
+      grid-template-columns: minmax(340px, 0.8fr) minmax(0, 1.6fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .narrator,
+    .surface,
+    .notes {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(21, 28, 35, 0.94);
+      box-shadow: var(--shadow);
+    }
+
+    .narrator {
+      position: sticky;
+      top: 12px;
+      overflow: hidden;
+    }
+
+    .step-head {
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr);
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #17212b;
+    }
+
+    .step-index {
+      width: 56px;
+      height: 56px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(67, 198, 172, 0.55);
+      border-radius: 8px;
+      background: rgba(67, 198, 172, 0.12);
+      color: var(--accent);
+      font-family: Consolas, Monaco, monospace;
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .step-title {
+      font-size: 23px;
+      line-height: 1.1;
+    }
+
+    .step-detail {
+      margin-top: 7px;
+      color: #c6d4df;
+      line-height: 1.45;
+    }
+
+    .code-box {
+      margin: 14px 18px;
+      min-height: 86px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0c1218;
+      color: #f3f7fb;
+      padding: 14px;
+      overflow-x: auto;
+      white-space: pre;
+      font: 700 15px/1.45 Consolas, Monaco, monospace;
+    }
+
+    .step-controls {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 8px;
+      align-items: center;
+      padding: 0 18px 14px;
+    }
+
+    .step-controls button {
+      min-height: 36px;
+      padding: 0 12px;
+      font-weight: 800;
+    }
+
+    .timeline-status {
+      min-width: 76px;
+      text-align: center;
+      color: var(--muted);
+      font: 800 13px Consolas, Monaco, monospace;
+    }
+
+    .event-log {
+      display: grid;
+      gap: 8px;
+      max-height: 260px;
+      overflow: auto;
+      padding: 0 18px 18px;
+    }
+
+    .event {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 9px;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #121a22;
+    }
+
+    .event.active {
+      border-color: rgba(67, 198, 172, 0.75);
+      background: rgba(67, 198, 172, 0.10);
+    }
+
+    .event-index {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: #0b1117;
+      color: var(--accent-2);
+      font-family: Consolas, Monaco, monospace;
+      font-weight: 900;
+    }
+
+    .event-title {
+      font-weight: 900;
+    }
+
+    .event-text {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .surface {
+      overflow: hidden;
+    }
+
+    .surface-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: start;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #17212b;
+    }
+
+    .surface-title h2 {
+      font-size: 26px;
+      line-height: 1.1;
+    }
+
+    .surface-title p {
+      margin-top: 6px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: end;
+    }
+
+    .metric {
+      min-width: 92px;
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #111922;
+      text-align: center;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 4px;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 20px;
+    }
+
+    .surface-body {
+      display: grid;
+      gap: 18px;
+      padding: 18px;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 9px;
+      color: #dce8ef;
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .section-title span {
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: none;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 8px;
+    }
+
+    .field {
+      min-height: 72px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #111922;
+    }
+
+    .field-name {
+      color: var(--muted);
+      font: 800 12px Consolas, Monaco, monospace;
+    }
+
+    .field-value {
+      margin-top: 7px;
+      color: var(--text);
+      font: 900 20px Consolas, Monaco, monospace;
+      overflow-wrap: anywhere;
+    }
+
+    .locks {
+      display: grid;
+      grid-template-columns: repeat(var(--lock-cols), minmax(110px, 1fr));
+      gap: 8px;
+    }
+
+    .lock {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #111922;
+      padding: 10px;
+      font-family: Consolas, Monaco, monospace;
+    }
+
+    .lock.held,
+    .bucket.active,
+    .node-card.active,
+    .focus {
+      border-color: rgba(240, 189, 98, 0.95) !important;
+      box-shadow: 0 0 0 3px rgba(240, 189, 98, 0.18);
+    }
+
+    .lock-name {
+      color: var(--accent-2);
+      font-weight: 900;
+    }
+
+    .lock-state {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .bucket-grid {
+      display: grid;
+      grid-template-columns: repeat(var(--cols), minmax(92px, 1fr));
+      gap: 8px;
+    }
+
+    .bucket {
+      min-height: 126px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #111922;
+      overflow: hidden;
+    }
+
+    .bucket-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 8px 9px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font: 800 12px Consolas, Monaco, monospace;
+    }
+
+    .chain {
+      display: grid;
+      gap: 7px;
+      padding: 8px;
+    }
+
+    .node-card {
+      border: 1px solid #486073;
+      border-radius: 7px;
+      background: #18232d;
+      padding: 7px;
+      font-family: Consolas, Monaco, monospace;
+    }
+
+    .node-id {
+      color: var(--accent-2);
+      font-weight: 900;
+      font-size: 12px;
+    }
+
+    .node-key {
+      margin-top: 4px;
+      color: var(--text);
+      font-weight: 900;
+    }
+
+    .node-value {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .empty {
+      color: #738394;
+      font: 800 13px Consolas, Monaco, monospace;
+    }
+
+    .nodes-table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #111922;
+      font-family: Consolas, Monaco, monospace;
+    }
+
+    .nodes-table th,
+    .nodes-table td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .nodes-table th {
+      color: var(--muted);
+      background: #17212b;
+      font-size: 12px;
+    }
+
+    .nodes-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .grow-lane {
+      display: none;
+      border: 1px solid rgba(127, 179, 255, 0.45);
+      border-radius: 8px;
+      background: rgba(127, 179, 255, 0.09);
+      padding: 12px;
+    }
+
+    .grow-lane.visible {
+      display: block;
+    }
+
+    .grow-map {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 10px;
+      align-items: center;
+      font-family: Consolas, Monaco, monospace;
+    }
+
+    .mini-array {
+      display: grid;
+      grid-template-columns: repeat(var(--mini-cols), minmax(28px, 1fr));
+      gap: 5px;
+    }
+
+    .mini-cell {
+      min-height: 32px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #0e151c;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .mini-cell.active {
+      border-color: var(--accent-2);
+      color: var(--text);
+    }
+
+    .arrow {
+      color: var(--accent-2);
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .notes {
+      margin-top: 14px;
+      padding: 16px 18px;
+    }
+
+    .notes h2 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .notes ol {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      max-width: min(440px, calc(100vw - 36px));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #111922;
+      color: var(--text);
+      box-shadow: var(--shadow);
+      padding: 12px 14px;
+      opacity: 0;
+      transform: translateY(14px);
+      pointer-events: none;
+      transition: opacity 170ms ease, transform 170ms ease;
+      line-height: 1.4;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1180px) {
+      .topbar,
+      .workbench,
+      .surface-head {
+        grid-template-columns: 1fr;
+      }
+
+      .narrator {
+        position: static;
+      }
+
+      .nav,
+      .metrics {
+        justify-content: start;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        width: min(100vw - 20px, 1500px);
+        padding-top: 14px;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      .controls,
+      .field-grid,
+      .grow-map {
+        grid-template-columns: 1fr;
+      }
+
+      .bucket-grid,
+      .locks {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">.NET 10 visual lab</p>
+        <h1>ConcurrentDictionary&lt;string,string&gt;</h1>
+        <p class="hero-copy">Модель показывает основные имена и порядок из .NET 10: <code>volatile Tables _tables</code>, <code>VolatileNode[] _buckets</code>, <code>object[] _locks</code>, <code>int[] _countPerLock</code>. <code>TryAdd</code> берет lock для bucket, <code>TryGetValue</code> читает цепочку без lock.</p>
+      </div>
+      <nav class="nav" aria-label="Версии">
+        <a href="dictionary.html">Dictionary</a>
+        <a href="dictionary-arrows.html">Dictionary + arrows</a>
+        <a class="active" href="concurrentdic.html">ConcurrentDictionary</a>
+      </nav>
+    </header>
+
+    <section class="controls" aria-label="Операции">
+      <label for="keyInput">
+        string key
+        <input id="keyInput" type="text" value="Aa" autocomplete="off" spellcheck="false">
+      </label>
+      <label for="valueInput">
+        string value
+        <input id="valueInput" type="text" value="first" autocomplete="off" spellcheck="false">
+      </label>
+      <label for="concurrencyInput">
+        int concurrencyLevel
+        <input id="concurrencyInput" type="number" min="1" max="8" step="1" value="4">
+      </label>
+      <button id="addBtn" class="primary-action" type="button">TryAdd</button>
+      <button id="getBtn" class="secondary-action" type="button">Get</button>
+      <button id="resetBtn" class="secondary-action" type="button">Reset</button>
+    </section>
+
+    <section class="workbench">
+      <aside class="narrator" aria-live="polite">
+        <div class="step-head">
+          <div class="step-index" id="stepIndex">0</div>
+          <div>
+            <h2 class="step-title" id="stepTitle">Готово</h2>
+            <p class="step-detail" id="stepDetail">Введите ключ и значение, затем запустите TryAdd или Get.</p>
+          </div>
+        </div>
+        <pre class="code-box" id="codeBox">ConcurrentDictionary&lt;string, string&gt; dictionary = new();</pre>
+        <div class="step-controls">
+          <button id="prevBtn" type="button">Previous</button>
+          <span class="timeline-status" id="timelineStatus">0 / 0</span>
+          <button id="nextBtn" type="button">Next</button>
+        </div>
+        <div class="event-log" id="eventLog"></div>
+      </aside>
+
+      <article class="surface">
+        <div class="surface-head">
+          <div class="surface-title">
+            <h2>Поля и Tables</h2>
+            <p><code>Tables</code> заменяется целиком при grow. Это позволяет атомарно переключить buckets, locks и count-per-lock на новую структуру.</p>
+          </div>
+          <div class="metrics" id="metrics"></div>
+        </div>
+
+        <div class="surface-body">
+          <section>
+            <div class="section-title">ConcurrentDictionary&lt;string,string&gt; fields <span>типы как в C#</span></div>
+            <div class="field-grid" id="fields"></div>
+          </section>
+
+          <section>
+            <div class="section-title">object[] _locks + int[] _countPerLock <span>lockNo = bucketNo % _locks.Length</span></div>
+            <div class="locks" id="locks"></div>
+          </section>
+
+          <section>
+            <div class="section-title">VolatileNode[] _buckets <span id="bucketHint">bucket stores Node? head</span></div>
+            <div class="bucket-grid" id="buckets"></div>
+          </section>
+
+          <section class="grow-lane" id="growLane">
+            <div class="section-title">GrowTable <span id="growText"></span></div>
+            <div class="grow-map">
+              <div class="mini-array" id="oldBuckets"></div>
+              <div class="arrow">-&gt;</div>
+              <div class="mini-array" id="newBuckets"></div>
+            </div>
+          </section>
+
+          <section>
+            <div class="section-title">Node objects <span>sealed class Node { TKey _key; TValue _value; Node? _next; int _hashcode; }</span></div>
+            <table class="nodes-table" id="nodesTable"></table>
+          </section>
+        </div>
+      </article>
+    </section>
+
+    <section class="notes">
+      <h2>Сноски</h2>
+      <ol>
+        <li>Исходник .NET 10: <a href="https://github.com/dotnet/runtime/blob/release/10.0/src/libraries/System.Collections.Concurrent/src/System/Collections/Concurrent/ConcurrentDictionary.cs" target="_blank" rel="noreferrer">ConcurrentDictionary.cs</a>. Важные места: <code>TryAddInternal</code>, <code>TryGetValue</code>, <code>GetBucketAndLock</code>, <code>Tables</code>, <code>VolatileNode</code>, <code>Node</code>.</li>
+        <li>Документация Microsoft Learn: <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2?view=net-10.0" target="_blank" rel="noreferrer">ConcurrentDictionary&lt;TKey,TValue&gt;</a>, <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2.tryadd?view=net-10.0" target="_blank" rel="noreferrer">TryAdd</a>, <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2.trygetvalue?view=net-10.0" target="_blank" rel="noreferrer">TryGetValue</a>.</li>
+        <li>В реальном .NET default capacity равен 31. В этой учебной версии стартовая capacity меньше, чтобы grow был виден на экране без перегруза.</li>
+      </ol>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    const INITIAL_CAPACITY = 8;
+    const MAX_LOG_ITEMS = 10;
+
+    const ui = {
+      keyInput: document.getElementById("keyInput"),
+      valueInput: document.getElementById("valueInput"),
+      concurrencyInput: document.getElementById("concurrencyInput"),
+      addBtn: document.getElementById("addBtn"),
+      getBtn: document.getElementById("getBtn"),
+      resetBtn: document.getElementById("resetBtn"),
+      prevBtn: document.getElementById("prevBtn"),
+      nextBtn: document.getElementById("nextBtn"),
+      timelineStatus: document.getElementById("timelineStatus"),
+      stepIndex: document.getElementById("stepIndex"),
+      stepTitle: document.getElementById("stepTitle"),
+      stepDetail: document.getElementById("stepDetail"),
+      codeBox: document.getElementById("codeBox"),
+      eventLog: document.getElementById("eventLog"),
+      metrics: document.getElementById("metrics"),
+      fields: document.getElementById("fields"),
+      locks: document.getElementById("locks"),
+      buckets: document.getElementById("buckets"),
+      bucketHint: document.getElementById("bucketHint"),
+      growLane: document.getElementById("growLane"),
+      growText: document.getElementById("growText"),
+      oldBuckets: document.getElementById("oldBuckets"),
+      newBuckets: document.getElementById("newBuckets"),
+      nodesTable: document.getElementById("nodesTable"),
+      toast: document.getElementById("toast")
+    };
+
+    let model = createModel(Number(ui.concurrencyInput.value));
+    let timeline = [];
+    let timelineIndex = -1;
+    let toastTimer = null;
+
+    function createModel(concurrencyLevel) {
+      const locks = Math.max(1, Math.min(8, Math.round(concurrencyLevel || 4)));
+      const capacity = Math.max(INITIAL_CAPACITY, locks * 2);
+      return {
+        tablesVersion: 1,
+        buckets: Array(capacity).fill(null),
+        locks: Array.from({ length: locks }, (_, index) => ({ index, held: false })),
+        countPerLock: Array(locks).fill(0),
+        nodes: [],
+        budget: Math.max(1, Math.floor(capacity / locks)),
+        growLockArray: true,
+        comparer: "EqualityComparer<string>.Default",
+        fastModBucketsMultiplier: "HashHelpers.GetFastModMultiplier",
+        step: 0,
+        title: "Готово",
+        detail: "Введите ключ и значение, затем запустите TryAdd или Get.",
+        code: "ConcurrentDictionary<string, string> dictionary = new();",
+        log: [],
+        currentHash: null,
+        currentBucket: null,
+        currentLock: null,
+        activeBucket: null,
+        activeNode: null,
+        heldLock: null,
+        result: "-",
+        grow: null,
+        focus: []
+      };
+    }
+
+    function cloneModel(source = model) {
+      return {
+        ...source,
+        buckets: source.buckets.slice(),
+        locks: source.locks.map(lock => ({ ...lock })),
+        countPerLock: source.countPerLock.slice(),
+        nodes: source.nodes.map(node => ({ ...node })),
+        log: source.log.map(item => ({ ...item })),
+        grow: source.grow ? {
+          oldBuckets: source.grow.oldBuckets.slice(),
+          newBuckets: source.grow.newBuckets.slice(),
+          movingNode: source.grow.movingNode,
+          oldSize: source.grow.oldSize,
+          newSize: source.grow.newSize
+        } : null,
+        focus: source.focus.slice()
+      };
+    }
+
+    function restore(snapshot) {
+      model = cloneModel(snapshot);
+    }
+
+    function stableHash(input) {
+      let hash = 2166136261;
+      for (let i = 0; i < input.length; i += 1) {
+        hash ^= input.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return hash | 0;
+    }
+
+    function hashToBucket(hashcode, length = model.buckets.length) {
+      return (hashcode >>> 0) % length;
+    }
+
+    function lockNoForBucket(bucketNo) {
+      return bucketNo % model.locks.length;
+    }
+
+    function nodeLabel(index) {
+      return index === null || index === undefined ? "null" : `n${index}`;
+    }
+
+    function chainFor(bucketNo, buckets = model.buckets) {
+      const chain = [];
+      let nodeIndex = buckets[bucketNo];
+      const guard = new Set();
+      while (nodeIndex !== null && nodeIndex !== undefined && !guard.has(nodeIndex)) {
+        guard.add(nodeIndex);
+        const node = model.nodes[nodeIndex];
+        if (!node) break;
+        chain.push(nodeIndex);
+        nodeIndex = node.next;
+      }
+      return chain;
+    }
+
+    function beginOperation() {
+      timeline = [];
+      timelineIndex = -1;
+      model.activeBucket = null;
+      model.activeNode = null;
+      model.currentHash = null;
+      model.currentBucket = null;
+      model.currentLock = null;
+      model.heldLock = null;
+      model.result = "-";
+      model.grow = null;
+      model.focus = [];
+      for (const lock of model.locks) lock.held = false;
+    }
+
+    function stage(title, detail, code, focus = []) {
+      model.step += 1;
+      model.title = title;
+      model.detail = detail;
+      model.code = code;
+      model.focus = focus;
+      model.log.unshift({ index: model.step, title, detail });
+      model.log = model.log.slice(0, MAX_LOG_ITEMS);
+      timeline.push(cloneModel());
+    }
+
+    function finishOperation() {
+      if (timeline.length) {
+        timelineIndex = 0;
+        restore(timeline[0]);
+      }
+      render();
+    }
+
+    function tryAddOperation() {
+      if (timeline.length && timelineIndex !== timeline.length - 1) {
+        showToast("Дойдите до последнего шага текущей операции.");
+        return;
+      }
+
+      const key = ui.keyInput.value.trim();
+      const value = ui.valueInput.value.trim();
+      if (!key) {
+        showToast("key не должен быть пустым.");
+        ui.keyInput.focus();
+        return;
+      }
+
+      beginOperation();
+      const hashcode = stableHash(key);
+      model.currentHash = hashcode;
+
+      stage(
+        "Read volatile _tables",
+        "Сначала метод читает текущий Tables. При grow поле _tables будет заменено целиком.",
+        `Tables tables = _tables;\nIEqualityComparer<TKey>? comparer = tables._comparer;`,
+        ["field-tables"]
+      );
+
+      stage(
+        "GetHashCode",
+        `Для key = "${key}" получен int hashcode = ${hashcode}.`,
+        `int hashcode = GetHashCode(comparer, key);\n// demo hashcode = ${hashcode}`,
+        ["metric-hash"]
+      );
+
+      let bucketNo = hashToBucket(hashcode);
+      let lockNo = lockNoForBucket(bucketNo);
+      model.currentBucket = bucketNo;
+      model.currentLock = lockNo;
+      model.activeBucket = bucketNo;
+      stage(
+        "GetBucketAndLock",
+        `bucketNo = ${bucketNo}, lockNo = ${lockNo}. Запись защищается только этим lock.`,
+        `ref Node? bucket = ref GetBucketAndLock(tables, hashcode, out uint lockNo);\nlockNo = bucketNo % tables._locks.Length;`,
+        [`bucket-${bucketNo}`, `lock-${lockNo}`]
+      );
+
+      model.locks[lockNo].held = true;
+      model.heldLock = lockNo;
+      stage(
+        "Enter lock",
+        `Monitor.Enter для _locks[${lockNo}]. Другие lock-stripes могут продолжать работать.`,
+        `lock (locks[${lockNo}])\n{\n    if (tables != _tables) retry;\n}`,
+        [`lock-${lockNo}`]
+      );
+
+      let nodeIndex = model.buckets[bucketNo];
+      while (nodeIndex !== null) {
+        const node = model.nodes[nodeIndex];
+        model.activeNode = nodeIndex;
+        stage(
+          `Compare n${nodeIndex}`,
+          `Проверяем _hashcode и _key в Node n${nodeIndex}.`,
+          `if (hashcode == node._hashcode && NodeEqualsKey(comparer, node, key))\n    return false;`,
+          [`node-${nodeIndex}`, `bucket-${bucketNo}`]
+        );
+        if (node.hashcode === hashcode && node.key === key) {
+          model.result = "false";
+          model.locks[lockNo].held = false;
+          model.heldLock = null;
+          stage(
+            "Key already exists",
+            "TryAdd не меняет значение существующего ключа и возвращает false.",
+            `resultingValue = node._value;\nreturn false;`,
+            [`node-${nodeIndex}`]
+          );
+          finishOperation();
+          return;
+        }
+        nodeIndex = node.next;
+      }
+
+      const newIndex = model.nodes.length;
+      const previousHead = model.buckets[bucketNo];
+      model.nodes.push({ key, value, hashcode, next: previousHead });
+      model.buckets[bucketNo] = newIndex;
+      model.countPerLock[lockNo] += 1;
+      model.activeNode = newIndex;
+      model.result = "true";
+      const resizeDesired = model.countPerLock[lockNo] > model.budget;
+
+      stage(
+        "Volatile.Write bucket",
+        `Создан Node n${newIndex}. Он стал головой bucket ${bucketNo}; _countPerLock[${lockNo}] = ${model.countPerLock[lockNo]}.`,
+        `var resultNode = new Node(key, value, hashcode, bucket);\nVolatile.Write(ref bucket, resultNode);\ntables._countPerLock[${lockNo}]++;`,
+        [`node-${newIndex}`, `bucket-${bucketNo}`, `lock-${lockNo}`]
+      );
+
+      model.locks[lockNo].held = false;
+      model.heldLock = null;
+      stage(
+        "Exit lock",
+        resizeDesired
+          ? "_countPerLock превысил _budget. GrowTable запускается после выхода из lock."
+          : "TryAdd завершен, grow не нужен.",
+        resizeDesired ? `resizeDesired = true;\nMonitor.Exit(locks[${lockNo}]);` : `Monitor.Exit(locks[${lockNo}]);\nreturn true;`,
+        [`lock-${lockNo}`]
+      );
+
+      if (resizeDesired) {
+        growTable(hashcode);
+      }
+
+      finishOperation();
+    }
+
+    function growTable(hashcode) {
+      const oldBuckets = model.buckets.slice();
+      const oldNodes = model.nodes.map(node => ({ ...node }));
+      const oldSize = model.buckets.length;
+      const newSize = oldSize * 2 + 1;
+      model.grow = {
+        oldBuckets,
+        newBuckets: Array(newSize).fill(null),
+        movingNode: null,
+        oldSize,
+        newSize
+      };
+      for (const lock of model.locks) lock.held = true;
+
+      stage(
+        "GrowTable: acquire all locks",
+        "GrowTable удерживает все locks, чтобы безопасно создать новый Tables и скопировать цепочки.",
+        `AcquireAllLocks(ref locksAcquired);\nvar newBuckets = new VolatileNode[${newSize}];`,
+        model.locks.map(lock => `lock-${lock.index}`)
+      );
+
+      const newBuckets = Array(newSize).fill(null);
+      const newCountPerLock = Array(model.locks.length).fill(0);
+      model.nodes = [];
+      model.buckets = newBuckets;
+
+      function oldChainFor(bucketNo) {
+        const chain = [];
+        let nodeIndex = oldBuckets[bucketNo];
+        const guard = new Set();
+        while (nodeIndex !== null && nodeIndex !== undefined && !guard.has(nodeIndex)) {
+          guard.add(nodeIndex);
+          const node = oldNodes[nodeIndex];
+          if (!node) break;
+          chain.push(nodeIndex);
+          nodeIndex = node.next;
+        }
+        return chain;
+      }
+
+      for (let oldBucket = 0; oldBucket < oldBuckets.length; oldBucket += 1) {
+        for (const nodeIndex of oldChainFor(oldBucket)) {
+          const oldNode = oldNodes[nodeIndex];
+          const copiedIndex = model.nodes.length;
+          const newBucket = hashToBucket(oldNode.hashcode, newSize);
+          const newLock = lockNoForBucket(newBucket);
+          model.nodes.push({ key: oldNode.key, value: oldNode.value, hashcode: oldNode.hashcode, next: newBuckets[newBucket] });
+          newBuckets[newBucket] = copiedIndex;
+          newCountPerLock[newLock] += 1;
+          model.grow.movingNode = nodeIndex;
+          model.grow.newBuckets[newBucket] = copiedIndex;
+          model.activeBucket = newBucket;
+          model.activeNode = copiedIndex;
+          stage(
+            `Copy n${nodeIndex}`,
+            `Node n${nodeIndex} копируется в новый bucket ${newBucket}. В реальном коде создается новый Node.`,
+            `newBuckets[${newBucket}] = new Node(current._key, current._value, current._hashcode, newBuckets[${newBucket}]);`,
+            [`bucket-${newBucket}`, `node-${copiedIndex}`, "growLane"]
+          );
+        }
+      }
+
+      model.buckets = newBuckets;
+      model.countPerLock = newCountPerLock;
+      model.budget = Math.max(1, Math.floor(newSize / model.locks.length));
+      model.tablesVersion += 1;
+      model.grow = null;
+      for (const lock of model.locks) lock.held = false;
+      const newBucketForCurrent = hashToBucket(hashcode);
+      model.activeBucket = newBucketForCurrent;
+
+      stage(
+        "Publish new Tables",
+        `_tables заменен на новый Tables. Новый _budget = ${model.budget}.`,
+        `_tables = new Tables(newBuckets, newLocks, newCountPerLock, tables._comparer);\n_budget = Math.Max(1, newBuckets.Length / newLocks.Length);`,
+        ["field-tables", "field-budget", `bucket-${newBucketForCurrent}`]
+      );
+    }
+
+    function getOperation() {
+      if (timeline.length && timelineIndex !== timeline.length - 1) {
+        showToast("Дойдите до последнего шага текущей операции.");
+        return;
+      }
+
+      const key = ui.keyInput.value.trim();
+      if (!key) {
+        showToast("key не должен быть пустым.");
+        ui.keyInput.focus();
+        return;
+      }
+
+      beginOperation();
+      const hashcode = stableHash(key);
+      model.currentHash = hashcode;
+      stage(
+        "TryGetValue: read _tables",
+        "TryGetValue не берет lock. Он читает Tables и идет по volatile bucket chain.",
+        `Tables tables = _tables;\nIEqualityComparer<TKey>? comparer = tables._comparer;`,
+        ["field-tables"]
+      );
+
+      stage(
+        "GetHashCode",
+        `Для key = "${key}" получен int hashcode = ${hashcode}.`,
+        `int hashcode = GetHashCode(comparer, key);`,
+        ["metric-hash"]
+      );
+
+      const bucketNo = hashToBucket(hashcode);
+      model.currentBucket = bucketNo;
+      model.activeBucket = bucketNo;
+      stage(
+        "GetBucket",
+        `Читаем bucket ${bucketNo}; lock не берется.`,
+        `for (Node? n = GetBucket(tables, hashcode); n is not null; n = n._next)`,
+        [`bucket-${bucketNo}`]
+      );
+
+      let nodeIndex = model.buckets[bucketNo];
+      while (nodeIndex !== null) {
+        const node = model.nodes[nodeIndex];
+        model.activeNode = nodeIndex;
+        stage(
+          `Compare n${nodeIndex}`,
+          "Сравниваем hashcode и key. При совпадении возвращаем value.",
+          `if (hashcode == n._hashcode && comparer.Equals(n._key, key))\n    return true;`,
+          [`node-${nodeIndex}`, `bucket-${bucketNo}`]
+        );
+        if (node.hashcode === hashcode && node.key === key) {
+          model.result = node.value;
+          stage(
+            "Value найден",
+            `TryGetValue вернул true, value = "${node.value}".`,
+            `value = n._value;\nreturn true;`,
+            [`node-${nodeIndex}`]
+          );
+          finishOperation();
+          return;
+        }
+        nodeIndex = node.next;
+      }
+
+      model.result = "false";
+      model.activeNode = null;
+      stage(
+        "Value не найден",
+        "Цепочка закончилась. TryGetValue вернул false.",
+        `value = default;\nreturn false;`,
+        [`bucket-${bucketNo}`]
+      );
+      finishOperation();
+    }
+
+    function goToStep(index) {
+      if (!timeline.length) return;
+      timelineIndex = Math.max(0, Math.min(index, timeline.length - 1));
+      restore(timeline[timelineIndex]);
+      render();
+    }
+
+    function resetAll(keepInputs = false) {
+      const key = ui.keyInput.value;
+      const value = ui.valueInput.value;
+      const concurrencyLevel = Math.max(1, Math.min(8, Math.round(Number(ui.concurrencyInput.value) || 4)));
+      ui.concurrencyInput.value = String(concurrencyLevel);
+      model = createModel(concurrencyLevel);
+      timeline = [];
+      timelineIndex = -1;
+      ui.keyInput.value = keepInputs ? key : "Aa";
+      ui.valueInput.value = keepInputs ? value : "first";
+      render();
+    }
+
+    function createEl(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    }
+
+    function render() {
+      const focusSet = new Set(model.focus);
+      ui.stepIndex.textContent = model.step;
+      ui.stepTitle.textContent = model.title;
+      ui.stepDetail.textContent = model.detail;
+      ui.codeBox.textContent = model.code;
+      ui.timelineStatus.textContent = timeline.length ? `${timelineIndex + 1} / ${timeline.length}` : "0 / 0";
+      ui.prevBtn.disabled = !timeline.length || timelineIndex <= 0;
+      ui.nextBtn.disabled = !timeline.length || timelineIndex >= timeline.length - 1;
+      const locked = timeline.length && timelineIndex !== timeline.length - 1;
+      ui.addBtn.disabled = locked;
+      ui.getBtn.disabled = locked;
+      ui.keyInput.disabled = locked;
+      ui.valueInput.disabled = locked;
+      ui.concurrencyInput.disabled = locked;
+
+      renderMetrics(focusSet);
+      renderFields(focusSet);
+      renderLocks(focusSet);
+      renderBuckets(focusSet);
+      renderGrow();
+      renderNodes(focusSet);
+      renderLog();
+    }
+
+    function renderMetrics(focusSet) {
+      const items = [
+        ["Count", String(model.nodes.length), "metric-count"],
+        ["Buckets", String(model.buckets.length), "metric-capacity"],
+        ["hashcode", model.currentHash === null ? "-" : String(model.currentHash), "metric-hash"],
+        ["bucketNo", model.currentBucket === null ? "-" : String(model.currentBucket), "metric-bucket"],
+        ["lockNo", model.currentLock === null ? "-" : String(model.currentLock), "metric-lock"],
+        ["result", model.result, "metric-result"]
+      ];
+      const fragment = document.createDocumentFragment();
+      for (const [label, value, id] of items) {
+        const node = createEl("div", `metric${focusSet.has(id) ? " focus" : ""}`);
+        node.id = id;
+        node.appendChild(createEl("span", "", label));
+        node.appendChild(createEl("strong", "", value));
+        fragment.appendChild(node);
+      }
+      ui.metrics.replaceChildren(fragment);
+    }
+
+    function renderFields(focusSet) {
+      const fields = [
+        ["volatile Tables _tables", `version ${model.tablesVersion}`, "field-tables"],
+        ["VolatileNode[] _buckets", `Length = ${model.buckets.length}`, "field-buckets"],
+        ["object[] _locks", `Length = ${model.locks.length}`, "field-locks"],
+        ["int[] _countPerLock", `[${model.countPerLock.join(", ")}]`, "field-countPerLock"],
+        ["int _budget", String(model.budget), "field-budget"],
+        ["bool _growLockArray", String(model.growLockArray), "field-growLockArray"],
+        ["IEqualityComparer<string>? _comparer", model.comparer, "field-comparer"],
+        ["ulong _fastModBucketsMultiplier", model.fastModBucketsMultiplier, "field-fastMod"]
+      ];
+      const fragment = document.createDocumentFragment();
+      for (const [name, value, id] of fields) {
+        const node = createEl("div", `field${focusSet.has(id) ? " focus" : ""}`);
+        node.id = id;
+        node.appendChild(createEl("div", "field-name", name));
+        node.appendChild(createEl("div", "field-value", value));
+        fragment.appendChild(node);
+      }
+      ui.fields.replaceChildren(fragment);
+    }
+
+    function renderLocks(focusSet) {
+      ui.locks.style.setProperty("--lock-cols", Math.min(model.locks.length, 4));
+      const fragment = document.createDocumentFragment();
+      for (const lock of model.locks) {
+        const node = createEl("div", `lock${lock.held ? " held" : ""}${focusSet.has(`lock-${lock.index}`) ? " focus" : ""}`);
+        node.id = `lock-${lock.index}`;
+        node.appendChild(createEl("div", "lock-name", `_locks[${lock.index}]`));
+        node.appendChild(createEl("div", "lock-state", lock.held ? "held" : "free"));
+        node.appendChild(createEl("div", "lock-state", `_countPerLock = ${model.countPerLock[lock.index]}`));
+        fragment.appendChild(node);
+      }
+      ui.locks.replaceChildren(fragment);
+    }
+
+    function renderBuckets(focusSet) {
+      ui.buckets.style.setProperty("--cols", Math.min(model.buckets.length, 8));
+      ui.bucketHint.textContent = "VolatileNode._node is the head Node?";
+      const fragment = document.createDocumentFragment();
+      for (let i = 0; i < model.buckets.length; i += 1) {
+        const bucket = createEl("div", "bucket");
+        bucket.id = `bucket-${i}`;
+        if (model.activeBucket === i) bucket.classList.add("active");
+        if (focusSet.has(bucket.id)) bucket.classList.add("focus");
+        const head = createEl("div", "bucket-head");
+        head.appendChild(createEl("span", "", `[${i}]`));
+        head.appendChild(createEl("span", "", nodeLabel(model.buckets[i])));
+        bucket.appendChild(head);
+
+        const chain = createEl("div", "chain");
+        const indexes = chainFor(i);
+        if (!indexes.length) {
+          chain.appendChild(createEl("div", "empty", "null"));
+        } else {
+          for (const index of indexes) {
+            const data = model.nodes[index];
+            const card = createEl("div", `node-card${model.activeNode === index ? " active" : ""}`);
+            card.appendChild(createEl("div", "node-id", `n${index} next:${nodeLabel(data.next)}`));
+            card.appendChild(createEl("div", "node-key", data.key));
+            card.appendChild(createEl("div", "node-value", data.value));
+            chain.appendChild(card);
+          }
+        }
+        bucket.appendChild(chain);
+        fragment.appendChild(bucket);
+      }
+      ui.buckets.replaceChildren(fragment);
+    }
+
+    function renderGrow() {
+      const grow = model.grow;
+      ui.growLane.classList.toggle("visible", Boolean(grow));
+      if (!grow) {
+        ui.oldBuckets.replaceChildren();
+        ui.newBuckets.replaceChildren();
+        ui.growText.textContent = "";
+        return;
+      }
+
+      ui.growText.textContent = `${grow.oldSize} -> ${grow.newSize}`;
+      renderMiniArray(ui.oldBuckets, grow.oldBuckets, grow.movingNode);
+      renderMiniArray(ui.newBuckets, grow.newBuckets, null);
+    }
+
+    function renderMiniArray(container, values, movingNode) {
+      container.style.setProperty("--mini-cols", Math.min(values.length, 8));
+      const fragment = document.createDocumentFragment();
+      values.forEach(value => {
+        const cell = createEl("div", "mini-cell", nodeLabel(value));
+        if (value === movingNode) cell.classList.add("active");
+        fragment.appendChild(cell);
+      });
+      container.replaceChildren(fragment);
+    }
+
+    function renderNodes(focusSet) {
+      const tableHead = document.createElement("thead");
+      const headRow = document.createElement("tr");
+      for (const name of ["Node", "int _hashcode", "Node? _next", "string _key", "string _value"]) {
+        headRow.appendChild(createEl("th", "", name));
+      }
+      tableHead.appendChild(headRow);
+
+      const body = document.createElement("tbody");
+      if (!model.nodes.length) {
+        const row = document.createElement("tr");
+        const cell = createEl("td", "", "empty");
+        cell.colSpan = 5;
+        row.appendChild(cell);
+        body.appendChild(row);
+      } else {
+        for (let i = 0; i < model.nodes.length; i += 1) {
+          const data = model.nodes[i];
+          const row = document.createElement("tr");
+          row.id = `node-${i}`;
+          if (model.activeNode === i || focusSet.has(row.id)) row.classList.add("focus");
+          row.appendChild(createEl("td", "", `n${i}`));
+          row.appendChild(createEl("td", "", String(data.hashcode)));
+          row.appendChild(createEl("td", "", nodeLabel(data.next)));
+          row.appendChild(createEl("td", "", data.key));
+          row.appendChild(createEl("td", "", data.value));
+          body.appendChild(row);
+        }
+      }
+      ui.nodesTable.replaceChildren(tableHead, body);
+    }
+
+    function renderLog() {
+      const fragment = document.createDocumentFragment();
+      for (const event of model.log) {
+        const item = createEl("div", event.index === model.step ? "event active" : "event");
+        item.appendChild(createEl("div", "event-index", String(event.index)));
+        const body = createEl("div");
+        body.appendChild(createEl("div", "event-title", event.title));
+        body.appendChild(createEl("div", "event-text", event.detail));
+        item.appendChild(body);
+        fragment.appendChild(item);
+      }
+      ui.eventLog.replaceChildren(fragment);
+    }
+
+    function showToast(message) {
+      window.clearTimeout(toastTimer);
+      ui.toast.textContent = message;
+      ui.toast.classList.add("visible");
+      toastTimer = window.setTimeout(() => ui.toast.classList.remove("visible"), 2400);
+    }
+
+    ui.addBtn.addEventListener("click", tryAddOperation);
+    ui.getBtn.addEventListener("click", getOperation);
+    ui.resetBtn.addEventListener("click", () => resetAll(false));
+    ui.concurrencyInput.addEventListener("change", () => resetAll(true));
+    ui.prevBtn.addEventListener("click", () => goToStep(timelineIndex - 1));
+    ui.nextBtn.addEventListener("click", () => goToStep(timelineIndex + 1));
+    ui.keyInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") ui.valueInput.focus();
+    });
+    ui.valueInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") tryAddOperation();
+    });
+
+    render();
+  </script>
+</body>
+</html>

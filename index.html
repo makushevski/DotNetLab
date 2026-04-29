@@ -1,0 +1,1994 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dictionary vs ConcurrentDictionary - Add</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0f1318;
+      --panel: #171d24;
+      --panel-2: #1f2730;
+      --panel-3: #26313c;
+      --text: #eef3f8;
+      --muted: #9eaab7;
+      --line: #33414f;
+      --accent: #41c6a7;
+      --accent-2: #f2c46d;
+      --danger: #ff6b6b;
+      --info: #67a7ff;
+      --violet: #b48cff;
+      --shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+      --radius: 8px;
+      font-family: Inter, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(180deg, rgba(20, 28, 34, 0.92), rgba(15, 19, 24, 0.98)),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.026) 0, rgba(255,255,255,0.026) 1px, transparent 1px, transparent 64px),
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 64px);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: #202934;
+      color: var(--text);
+      border-radius: 7px;
+      cursor: pointer;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, opacity 160ms ease;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: #536476;
+      background: #263240;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 10px 12px;
+      background: #10161d;
+      color: var(--text);
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(65, 198, 167, 0.12);
+    }
+
+    input[type="range"] {
+      width: 170px;
+      accent-color: var(--accent);
+    }
+
+    .app {
+      width: min(1680px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 22px 0 30px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 22px;
+      align-items: end;
+      margin-bottom: 16px;
+    }
+
+    .eyebrow {
+      margin: 0 0 7px;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(34px, 4.2vw, 70px);
+      line-height: 0.98;
+      letter-spacing: 0;
+      max-width: 980px;
+    }
+
+    .hero-copy {
+      margin-top: 12px;
+      color: var(--muted);
+      max-width: 860px;
+      font-size: 16px;
+    }
+
+    .status-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 8px;
+      min-width: 430px;
+    }
+
+    .stat {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      background: rgba(23, 29, 36, 0.82);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .stat-label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stat-value {
+      display: block;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 18px;
+      color: var(--text);
+      overflow-wrap: anywhere;
+    }
+
+    .control-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: stretch;
+      border: 1px solid var(--line);
+      background: rgba(23, 29, 36, 0.92);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: minmax(170px, 1fr) minmax(170px, 1fr) auto auto;
+      gap: 10px;
+      align-items: end;
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .primary-action {
+      min-height: 42px;
+      min-width: 110px;
+      padding: 0 18px;
+      background: var(--accent);
+      border-color: rgba(65, 198, 167, 0.55);
+      color: #06241d;
+      font-weight: 800;
+    }
+
+    .secondary-action {
+      min-height: 42px;
+      padding: 0 14px;
+      color: var(--muted);
+    }
+
+    .toolbelt {
+      display: grid;
+      grid-template-columns: auto auto;
+      gap: 12px;
+      align-content: end;
+      justify-content: end;
+    }
+
+    .processor-card {
+      display: grid;
+      gap: 8px;
+      min-width: 250px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #121920;
+    }
+
+    .processor-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .processor-title {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .processor-value {
+      color: var(--text);
+      font-family: Consolas, Monaco, monospace;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .processor-controls {
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr) 36px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .processor-controls button {
+      width: 36px;
+      height: 34px;
+      font-size: 19px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .processor-formula {
+      color: var(--muted);
+      font-family: Consolas, Monaco, monospace;
+      font-size: 12px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .step-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 42px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #121920;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .step-control button {
+      min-height: 34px;
+      padding: 0 12px;
+      font-weight: 800;
+    }
+
+    .timeline-status {
+      min-width: 74px;
+      color: var(--text);
+      font-family: Consolas, Monaco, monospace;
+      text-align: center;
+    }
+
+    .scenario-row {
+      display: flex;
+      align-items: center;
+      justify-content: end;
+      gap: 8px;
+      min-height: 42px;
+    }
+
+    .scenario-row button {
+      min-height: 36px;
+      padding: 0 11px;
+      color: #d5dee7;
+      font-size: 13px;
+    }
+
+    .workbench {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.74fr) minmax(0, 2fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .narrator {
+      position: sticky;
+      top: 12px;
+      border: 1px solid var(--line);
+      background: rgba(23, 29, 36, 0.96);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .narrator-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 15px;
+      border-bottom: 1px solid var(--line);
+      background: #1b232c;
+    }
+
+    .step-counter {
+      display: grid;
+      place-items: center;
+      width: 52px;
+      height: 52px;
+      border: 1px solid rgba(65, 198, 167, 0.42);
+      border-radius: var(--radius);
+      background: rgba(65, 198, 167, 0.11);
+      color: var(--accent);
+      font-size: 24px;
+      font-weight: 900;
+      font-family: Consolas, Monaco, monospace;
+    }
+
+    .narrator-title {
+      font-size: 20px;
+      line-height: 1.18;
+    }
+
+    .narrator-detail {
+      margin-top: 5px;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .code-box {
+      margin: 14px;
+      padding: 13px;
+      border: 1px solid var(--line);
+      background: #0f151b;
+      border-radius: var(--radius);
+      min-height: 78px;
+      font-family: Consolas, Monaco, monospace;
+      color: #dce8f2;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .event-log {
+      display: grid;
+      gap: 8px;
+      padding: 0 14px 14px;
+      max-height: 340px;
+      overflow: auto;
+    }
+
+    .event {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #151c23;
+    }
+
+    .event.active {
+      border-color: rgba(65, 198, 167, 0.72);
+      background: rgba(65, 198, 167, 0.09);
+    }
+
+    .event-index {
+      display: grid;
+      place-items: center;
+      height: 30px;
+      border-radius: 6px;
+      background: #10161d;
+      color: var(--muted);
+      font-family: Consolas, Monaco, monospace;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .event-title {
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .event-text {
+      margin-top: 4px;
+      color: var(--muted);
+      line-height: 1.35;
+      font-size: 13px;
+    }
+
+    .table-area {
+      min-width: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .tabbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid var(--line);
+      background: rgba(23, 29, 36, 0.88);
+      border-radius: var(--radius);
+      padding: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .tab-button {
+      min-height: 40px;
+      padding: 0 16px;
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    .tab-button.active {
+      border-color: rgba(65, 198, 167, 0.55);
+      background: rgba(65, 198, 167, 0.15);
+      color: var(--text);
+    }
+
+    .tab-button[data-tab="con"].active {
+      border-color: rgba(103, 167, 255, 0.58);
+      background: rgba(103, 167, 255, 0.14);
+    }
+
+    .tables-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .table-surface {
+      min-width: 0;
+      border: 1px solid var(--line);
+      background: rgba(23, 29, 36, 0.96);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .table-surface[hidden] {
+      display: none;
+    }
+
+    .table-surface.dictionary {
+      --local-accent: var(--accent);
+    }
+
+    .table-surface.concurrent {
+      --local-accent: var(--info);
+    }
+
+    .surface-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+      background: #1b232c;
+    }
+
+    .surface-title {
+      min-width: 0;
+    }
+
+    .surface-title h2 {
+      font-size: clamp(19px, 1.55vw, 22px);
+      line-height: 1.1;
+      overflow-wrap: normal;
+      word-break: normal;
+    }
+
+    .surface-title p {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .surface-metrics {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: start;
+    }
+
+    .metric-pill {
+      min-width: 68px;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #111820;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .metric-pill strong {
+      display: block;
+      margin-top: 2px;
+      color: var(--text);
+      font-size: 16px;
+      font-family: Consolas, Monaco, monospace;
+    }
+
+    .surface-body {
+      display: grid;
+      gap: 14px;
+      padding: 14px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      color: #dce8f2;
+      font-weight: 900;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    .section-title span {
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: none;
+    }
+
+    .bucket-grid {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    }
+
+    .bucket {
+      position: relative;
+      min-height: 116px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #121920;
+      overflow: hidden;
+      transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+    }
+
+    .bucket.active {
+      border-color: var(--local-accent);
+      background: rgba(65, 198, 167, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .concurrent .bucket.active {
+      background: rgba(103, 167, 255, 0.08);
+    }
+
+    .bucket.collision {
+      border-color: rgba(242, 196, 109, 0.78);
+    }
+
+    .bucket.duplicate {
+      border-color: rgba(255, 107, 107, 0.86);
+      background: rgba(255, 107, 107, 0.08);
+    }
+
+    .bucket-index {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 9px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-size: 12px;
+      font-family: Consolas, Monaco, monospace;
+    }
+
+    .bucket-chain {
+      display: grid;
+      gap: 7px;
+      padding: 9px;
+      min-height: 78px;
+      align-content: start;
+    }
+
+    .empty-cell {
+      display: grid;
+      place-items: center;
+      min-height: 54px;
+      color: #66717d;
+      font-family: Consolas, Monaco, monospace;
+      border: 1px dashed #2e3a46;
+      border-radius: 6px;
+    }
+
+    .node {
+      display: grid;
+      gap: 3px;
+      padding: 7px 8px;
+      border: 1px solid #3b4a58;
+      border-left: 4px solid var(--local-accent);
+      border-radius: 6px;
+      background: #1b242d;
+      min-width: 0;
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    .node.active,
+    .node.moving {
+      transform: scale(1.02);
+      border-color: var(--local-accent);
+      background: rgba(65, 198, 167, 0.11);
+    }
+
+    .concurrent .node.active,
+    .concurrent .node.moving {
+      background: rgba(103, 167, 255, 0.11);
+    }
+
+    .node.duplicate {
+      border-color: var(--danger);
+      background: rgba(255, 107, 107, 0.11);
+    }
+
+    .node-id {
+      color: var(--muted);
+      font-family: Consolas, Monaco, monospace;
+      font-size: 11px;
+    }
+
+    .node-key {
+      min-width: 0;
+      color: var(--text);
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .node-value {
+      min-width: 0;
+      color: var(--muted);
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .lock-row {
+      display: grid;
+      grid-template-columns: repeat(var(--lock-cols), minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .lock-cell {
+      min-height: 58px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #111820;
+      display: grid;
+      place-items: center;
+      gap: 2px;
+      padding: 8px;
+      transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+    }
+
+    .lock-cell.active {
+      border-color: var(--info);
+      background: rgba(103, 167, 255, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .lock-cell.held {
+      border-color: rgba(242, 196, 109, 0.86);
+      background: rgba(242, 196, 109, 0.10);
+    }
+
+    .lock-name {
+      color: var(--text);
+      font-weight: 900;
+      font-family: Consolas, Monaco, monospace;
+    }
+
+    .lock-state {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .lock-buckets {
+      color: #c4d3e2;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .entries-table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #111820;
+      table-layout: fixed;
+    }
+
+    .entries-table th,
+    .entries-table td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+      overflow-wrap: anywhere;
+      font-size: 13px;
+    }
+
+    .entries-table th {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      background: #17202a;
+    }
+
+    .entries-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .entries-table tr.active td {
+      background: rgba(65, 198, 167, 0.09);
+    }
+
+    .concurrent .entries-table tr.active td {
+      background: rgba(103, 167, 255, 0.09);
+    }
+
+    .mono {
+      font-family: Consolas, Monaco, monospace;
+    }
+
+    .resize-lane {
+      display: none;
+      gap: 10px;
+      border: 1px solid rgba(242, 196, 109, 0.5);
+      background: rgba(242, 196, 109, 0.07);
+      border-radius: var(--radius);
+      padding: 10px;
+    }
+
+    .resize-lane.visible {
+      display: grid;
+    }
+
+    .resize-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 9px;
+      align-items: stretch;
+    }
+
+    .mini-array {
+      display: grid;
+      gap: 6px;
+      grid-template-columns: repeat(var(--mini-cols), minmax(0, 1fr));
+      min-width: 0;
+    }
+
+    .mini-cell {
+      min-height: 58px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #111820;
+      padding: 6px;
+      font-size: 11px;
+      color: var(--muted);
+      overflow: hidden;
+    }
+
+    .mini-cell.active {
+      border-color: var(--accent-2);
+      background: rgba(242, 196, 109, 0.10);
+    }
+
+    .mini-index {
+      display: block;
+      margin-bottom: 5px;
+      font-family: Consolas, Monaco, monospace;
+      color: #d8c18a;
+    }
+
+    .mini-chain {
+      display: grid;
+      gap: 3px;
+    }
+
+    .mini-chip {
+      display: block;
+      padding: 3px 5px;
+      border-radius: 5px;
+      background: #202934;
+      color: #e8eef5;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: Consolas, Monaco, monospace;
+    }
+
+    .resize-arrow {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      color: var(--accent-2);
+      font-size: 28px;
+      font-family: Consolas, Monaco, monospace;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      max-width: min(420px, calc(100vw - 36px));
+      border: 1px solid var(--line);
+      background: #141b23;
+      color: var(--text);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px 14px;
+      transform: translateY(16px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+      line-height: 1.4;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1260px) {
+      .topbar,
+      .control-panel,
+      .workbench,
+      .tables-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .status-strip {
+        min-width: 0;
+      }
+
+      .narrator {
+        position: static;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        width: min(100vw - 20px, 1680px);
+        padding-top: 14px;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      .input-grid,
+      .toolbelt,
+      .processor-card,
+      .step-control,
+      .resize-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .status-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .scenario-row {
+        justify-content: stretch;
+        flex-wrap: wrap;
+      }
+
+      .scenario-row button,
+      .primary-action,
+      .secondary-action {
+        flex: 1 1 120px;
+      }
+
+      .bucket-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+
+      .surface-head {
+        grid-template-columns: 1fr;
+      }
+
+      .surface-title h2 {
+        overflow-wrap: anywhere;
+      }
+
+      .resize-arrow {
+        width: 100%;
+        min-height: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">C# visual lab</p>
+        <h1>Dictionary и ConcurrentDictionary: Add</h1>
+        <p class="hero-copy">Упрощенная, детерминированная модель: один ключ, одно значение, медленная вставка с hashCode, bucket, цепочками, resize и lock-stripes.</p>
+      </div>
+      <div class="status-strip" aria-label="Текущие вычисления">
+        <div class="stat">
+          <span class="stat-label">hashCode</span>
+          <span class="stat-value" id="hashStat">-</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">bucket</span>
+          <span class="stat-value" id="bucketStat">-</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">lock</span>
+          <span class="stat-value" id="lockStat">-</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="control-panel" aria-label="Панель добавления">
+      <div class="input-grid">
+        <label for="keyInput">
+          Ключ
+          <input id="keyInput" type="text" value="Aa" autocomplete="off" spellcheck="false">
+        </label>
+        <label for="valueInput">
+          Значение
+          <input id="valueInput" type="text" value="first" autocomplete="off" spellcheck="false">
+        </label>
+        <button id="addBtn" class="primary-action" type="button">Add</button>
+        <button id="resetBtn" class="secondary-action" type="button">Сброс</button>
+      </div>
+      <div class="processor-card" aria-label="Настройка processorCount">
+        <div class="processor-head">
+          <span class="processor-title">processorCount</span>
+          <span class="processor-value" id="processorValue">4</span>
+        </div>
+        <div class="processor-controls">
+          <button id="processorMinusBtn" type="button" aria-label="Уменьшить processorCount">-</button>
+          <input id="processorInput" type="range" min="1" max="8" step="1" value="4" aria-label="processorCount">
+          <button id="processorPlusBtn" type="button" aria-label="Увеличить processorCount">+</button>
+        </div>
+        <div class="processor-formula" id="processorFormula">locks = processorCount</div>
+      </div>
+      <div class="toolbelt">
+        <div class="step-control" aria-label="Пошаговая навигация">
+          <button id="prevBtn" type="button">Previous</button>
+          <span class="timeline-status" id="timelineStatus">0 / 0</span>
+          <button id="nextBtn" type="button">Next</button>
+        </div>
+        <div class="scenario-row" aria-label="Сценарии">
+          <button id="collisionBtn" type="button">Ключ для коллизии</button>
+          <button id="resizeBtn" type="button">Ключ для resize</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="workbench">
+      <aside class="narrator" aria-live="polite">
+        <div class="narrator-head">
+          <div class="step-counter" id="stepCounter">0</div>
+          <div>
+            <h2 class="narrator-title" id="stepTitle">Готов к Add</h2>
+            <p class="narrator-detail" id="stepDetail">Введите ключ и значение. Оба стенда начнут одну и ту же вставку.</p>
+          </div>
+        </div>
+        <pre class="code-box" id="codeBox">Dictionary&lt;string, string&gt; table = new();</pre>
+        <div class="event-log" id="eventLog"></div>
+      </aside>
+
+      <div class="table-area">
+        <div class="tabbar" role="tablist" aria-label="Выбор структуры">
+          <button class="tab-button active" id="dictTab" type="button" role="tab" aria-selected="true" data-tab="dict">Dictionary</button>
+          <button class="tab-button" id="conTab" type="button" role="tab" aria-selected="false" data-tab="con">ConcurrentDictionary</button>
+        </div>
+
+      <section class="tables-grid" aria-label="Сравнение структур">
+        <article class="table-surface dictionary" id="dictPanel">
+          <div class="surface-head">
+            <div class="surface-title">
+              <h2>Dictionary&lt;string,string&gt;</h2>
+              <p>Один массив buckets, один массив entries, цепочка через next.</p>
+            </div>
+            <div class="surface-metrics" id="dictMetrics"></div>
+          </div>
+          <div class="surface-body">
+            <div>
+              <div class="section-title">Buckets <span id="dictBucketHint"></span></div>
+              <div class="bucket-grid" id="dictBuckets"></div>
+            </div>
+            <div class="resize-lane" id="dictResizeLane">
+              <div class="section-title">Resize <span id="dictResizeText"></span></div>
+              <div class="resize-grid">
+                <div class="mini-array" id="dictOldBuckets"></div>
+                <div class="resize-arrow">-&gt;</div>
+                <div class="mini-array" id="dictNewBuckets"></div>
+              </div>
+            </div>
+            <div>
+              <div class="section-title">Entries <span>index, hash, key, value, next</span></div>
+              <table class="entries-table" id="dictEntries"></table>
+            </div>
+          </div>
+        </article>
+
+        <article class="table-surface concurrent" id="conPanel">
+          <div class="surface-head">
+            <div class="surface-title">
+              <h2>ConcurrentDictionary&lt;string,string&gt;</h2>
+              <p>processorCount задает lock-stripes; один lock защищает несколько buckets.</p>
+            </div>
+            <div class="surface-metrics" id="conMetrics"></div>
+          </div>
+          <div class="surface-body">
+            <div>
+              <div class="section-title">Locks <span id="conLockHint"></span></div>
+              <div class="lock-row" id="conLocks"></div>
+            </div>
+            <div>
+              <div class="section-title">Buckets <span id="conBucketHint"></span></div>
+              <div class="bucket-grid" id="conBuckets"></div>
+            </div>
+            <div class="resize-lane" id="conResizeLane">
+              <div class="section-title">Grow Table <span id="conResizeText"></span></div>
+              <div class="resize-grid">
+                <div class="mini-array" id="conOldBuckets"></div>
+                <div class="resize-arrow">-&gt;</div>
+                <div class="mini-array" id="conNewBuckets"></div>
+              </div>
+            </div>
+            <div>
+              <div class="section-title">Nodes <span>index, hash, key, value, next</span></div>
+              <table class="entries-table" id="conEntries"></table>
+            </div>
+          </div>
+        </article>
+      </section>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    const INITIAL_CAPACITY = 4;
+    const DEFAULT_PROCESSOR_COUNT = 4;
+    const MIN_PROCESSOR_COUNT = 1;
+    const MAX_PROCESSOR_COUNT = 8;
+    const LOAD_FACTOR = 0.75;
+    const MAX_LOG_ITEMS = 9;
+
+    const ui = {
+      keyInput: document.getElementById("keyInput"),
+      valueInput: document.getElementById("valueInput"),
+      addBtn: document.getElementById("addBtn"),
+      resetBtn: document.getElementById("resetBtn"),
+      collisionBtn: document.getElementById("collisionBtn"),
+      resizeBtn: document.getElementById("resizeBtn"),
+      processorInput: document.getElementById("processorInput"),
+      processorMinusBtn: document.getElementById("processorMinusBtn"),
+      processorPlusBtn: document.getElementById("processorPlusBtn"),
+      processorValue: document.getElementById("processorValue"),
+      processorFormula: document.getElementById("processorFormula"),
+      prevBtn: document.getElementById("prevBtn"),
+      nextBtn: document.getElementById("nextBtn"),
+      timelineStatus: document.getElementById("timelineStatus"),
+      dictTab: document.getElementById("dictTab"),
+      conTab: document.getElementById("conTab"),
+      hashStat: document.getElementById("hashStat"),
+      bucketStat: document.getElementById("bucketStat"),
+      lockStat: document.getElementById("lockStat"),
+      stepCounter: document.getElementById("stepCounter"),
+      stepTitle: document.getElementById("stepTitle"),
+      stepDetail: document.getElementById("stepDetail"),
+      codeBox: document.getElementById("codeBox"),
+      eventLog: document.getElementById("eventLog"),
+      toast: document.getElementById("toast")
+    };
+
+    const refs = {
+      dict: {
+        panel: document.getElementById("dictPanel"),
+        metrics: document.getElementById("dictMetrics"),
+        buckets: document.getElementById("dictBuckets"),
+        entries: document.getElementById("dictEntries"),
+        bucketHint: document.getElementById("dictBucketHint"),
+        resizeLane: document.getElementById("dictResizeLane"),
+        resizeText: document.getElementById("dictResizeText"),
+        oldBuckets: document.getElementById("dictOldBuckets"),
+        newBuckets: document.getElementById("dictNewBuckets")
+      },
+      con: {
+        panel: document.getElementById("conPanel"),
+        metrics: document.getElementById("conMetrics"),
+        buckets: document.getElementById("conBuckets"),
+        entries: document.getElementById("conEntries"),
+        locks: document.getElementById("conLocks"),
+        lockHint: document.getElementById("conLockHint"),
+        bucketHint: document.getElementById("conBucketHint"),
+        resizeLane: document.getElementById("conResizeLane"),
+        resizeText: document.getElementById("conResizeText"),
+        oldBuckets: document.getElementById("conOldBuckets"),
+        newBuckets: document.getElementById("conNewBuckets")
+      }
+    };
+
+    let processorCount = DEFAULT_PROCESSOR_COUNT;
+    let app = createAppState(processorCount);
+    let timeline = null;
+    let timelineBuilder = null;
+    let activeTab = "dict";
+    let toastTimer = null;
+
+    function concurrentCapacityFor(processors) {
+      return Math.max(INITIAL_CAPACITY * 2, processors * 2);
+    }
+
+    function createTable(kind, lockCount, capacity = INITIAL_CAPACITY) {
+      return {
+        kind,
+        capacity,
+        buckets: Array(capacity).fill(-1),
+        entries: [],
+        lockCount,
+        activeBucket: null,
+        activeEntry: null,
+        duplicateEntry: null,
+        activeLock: null,
+        heldLocks: new Set(),
+        resize: null,
+        pending: null
+      };
+    }
+
+    function createAppState(processors = processorCount) {
+      return {
+        step: 0,
+        title: "Готов к Add",
+        detail: "Введите ключ и значение. Оба стенда начнут одну и ту же вставку.",
+        code: "Dictionary<string, string> table = new();",
+        log: [],
+        currentHash: null,
+        currentBucket: null,
+        currentLock: null,
+        processorCount: processors,
+        dict: createTable("dictionary", 0),
+        con: createTable("concurrent", processors, concurrentCapacityFor(processors))
+      };
+    }
+
+    function cloneResize(resize) {
+      if (!resize) return null;
+      return {
+        fromCapacity: resize.fromCapacity,
+        toCapacity: resize.toCapacity,
+        oldBuckets: resize.oldBuckets.slice(),
+        newChains: resize.newChains.map(chain => chain.slice()),
+        movingIndex: resize.movingIndex,
+        movingBucket: resize.movingBucket
+      };
+    }
+
+    function cloneTable(table) {
+      return {
+        kind: table.kind,
+        capacity: table.capacity,
+        buckets: table.buckets.slice(),
+        entries: table.entries.map(entry => ({ ...entry })),
+        lockCount: table.lockCount,
+        activeBucket: table.activeBucket,
+        activeEntry: table.activeEntry,
+        duplicateEntry: table.duplicateEntry,
+        activeLock: table.activeLock,
+        heldLocks: new Set(Array.from(table.heldLocks)),
+        resize: cloneResize(table.resize),
+        pending: table.pending ? { ...table.pending } : null
+      };
+    }
+
+    function cloneAppState(state) {
+      return {
+        step: state.step,
+        title: state.title,
+        detail: state.detail,
+        code: state.code,
+        log: state.log.map(event => ({ ...event })),
+        currentHash: state.currentHash,
+        currentBucket: state.currentBucket,
+        currentLock: state.currentLock,
+        processorCount: state.processorCount,
+        dict: cloneTable(state.dict),
+        con: cloneTable(state.con)
+      };
+    }
+
+    function stableHash(input) {
+      let hash = 0;
+      for (let i = 0; i < input.length; i += 1) {
+        hash = Math.imul(hash, 31) + input.charCodeAt(i);
+        hash >>>= 0;
+      }
+      return hash & 0x7fffffff;
+    }
+
+    function bucketOf(hash, capacity) {
+      return hash % capacity;
+    }
+
+    function lockOf(bucket, lockCount) {
+      return lockCount ? bucket % lockCount : null;
+    }
+
+    function loadLimit(table) {
+      return Math.max(1, Math.floor(table.capacity * LOAD_FACTOR));
+    }
+
+    function chainFor(table, bucketIndex, buckets = table.buckets) {
+      const chain = [];
+      let entryIndex = buckets[bucketIndex];
+      const guard = new Set();
+      while (entryIndex !== -1 && !guard.has(entryIndex)) {
+        guard.add(entryIndex);
+        const entry = table.entries[entryIndex];
+        if (!entry) break;
+        chain.push(entryIndex);
+        entryIndex = entry.next;
+      }
+      return chain;
+    }
+
+    function findEntryInBucket(table, bucketIndex, key) {
+      const chain = chainFor(table, bucketIndex);
+      for (const entryIndex of chain) {
+        if (table.entries[entryIndex].key === key) {
+          return entryIndex;
+        }
+      }
+      return -1;
+    }
+
+    function insertEntry(table, key, value, hash, bucketIndex) {
+      const entryIndex = table.entries.length;
+      table.entries.push({
+        index: entryIndex,
+        key,
+        value,
+        hash,
+        next: table.buckets[bucketIndex]
+      });
+      table.buckets[bucketIndex] = entryIndex;
+      table.activeEntry = entryIndex;
+      table.activeBucket = bucketIndex;
+      return entryIndex;
+    }
+
+    function rebuildForCapacity(table, newCapacity) {
+      const newBuckets = Array(newCapacity).fill(-1);
+      for (const entry of table.entries) {
+        const bucketIndex = bucketOf(entry.hash, newCapacity);
+        entry.next = newBuckets[bucketIndex];
+        newBuckets[bucketIndex] = entry.index;
+      }
+      table.capacity = newCapacity;
+      table.buckets = newBuckets;
+    }
+
+    function buildResizeState(table, newCapacity) {
+      return {
+        fromCapacity: table.capacity,
+        toCapacity: newCapacity,
+        oldBuckets: table.buckets.slice(),
+        newChains: Array.from({ length: newCapacity }, () => []),
+        movingIndex: null,
+        movingBucket: null
+      };
+    }
+
+    function createEl(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    }
+
+    function setText(node, value) {
+      node.textContent = value;
+    }
+
+    function shortText(value, max = 18) {
+      const text = String(value);
+      return text.length > max ? `${text.slice(0, max - 1)}...` : text;
+    }
+
+    function timelineIsActive() {
+      return Boolean(timeline && timeline.steps.length);
+    }
+
+    function timelineIsAtFinalStep() {
+      return !timelineIsActive() || timeline.index === timeline.steps.length - 1;
+    }
+
+    function updateControls() {
+      const hasTimeline = timelineIsActive();
+      const atFinal = timelineIsAtFinalStep();
+      const lockedByTimeline = hasTimeline && !atFinal;
+
+      ui.prevBtn.disabled = !hasTimeline || timeline.index === 0;
+      ui.nextBtn.disabled = !hasTimeline || atFinal;
+      ui.timelineStatus.textContent = hasTimeline ? `${timeline.index + 1} / ${timeline.steps.length}` : "0 / 0";
+
+      ui.addBtn.disabled = lockedByTimeline;
+      ui.collisionBtn.disabled = lockedByTimeline;
+      ui.resizeBtn.disabled = lockedByTimeline;
+      ui.processorInput.disabled = lockedByTimeline;
+      ui.processorMinusBtn.disabled = lockedByTimeline || processorCount <= MIN_PROCESSOR_COUNT;
+      ui.processorPlusBtn.disabled = lockedByTimeline || processorCount >= MAX_PROCESSOR_COUNT;
+      ui.keyInput.disabled = lockedByTimeline;
+      ui.valueInput.disabled = lockedByTimeline;
+
+      renderProcessorBlock();
+      renderTabs();
+    }
+
+    function renderProcessorBlock() {
+      ui.processorInput.value = String(processorCount);
+      ui.processorValue.textContent = String(processorCount);
+      ui.processorFormula.textContent = `locks = processorCount = ${processorCount}; buckets = ${concurrentCapacityFor(processorCount)}`;
+    }
+
+    function setProcessorCount(value) {
+      if (!timelineIsAtFinalStep()) {
+        showToast("processorCount можно менять после завершения текущего сценария.");
+        renderProcessorBlock();
+        return;
+      }
+
+      const next = Math.max(MIN_PROCESSOR_COUNT, Math.min(MAX_PROCESSOR_COUNT, Number(value)));
+      if (next === processorCount) {
+        renderProcessorBlock();
+        return;
+      }
+
+      processorCount = next;
+      resetAll({ keepInputs: true, silent: true });
+      showToast(`Стенд пересоздан: locks = processorCount = ${processorCount}.`);
+    }
+
+    function showTimelineStep(index) {
+      if (!timelineIsActive()) return;
+      timeline.index = Math.max(0, Math.min(index, timeline.steps.length - 1));
+      app = cloneAppState(timeline.steps[timeline.index]);
+      render();
+    }
+
+    async function stage(title, detail, code, options = {}) {
+      app.step += 1;
+      app.title = title;
+      app.detail = detail;
+      app.code = code;
+      setText(ui.stepCounter, app.step);
+      setText(ui.stepTitle, title);
+      setText(ui.stepDetail, detail);
+      setText(ui.codeBox, code);
+      app.log.unshift({ index: app.step, title, detail });
+      app.log = app.log.slice(0, MAX_LOG_ITEMS);
+
+      if (options.hash !== undefined) app.currentHash = options.hash;
+      if (options.bucket !== undefined) app.currentBucket = options.bucket;
+      if (options.lock !== undefined) app.currentLock = options.lock;
+
+      if (timelineBuilder) {
+        timelineBuilder.steps.push(cloneAppState(app));
+      } else {
+        render();
+      }
+    }
+
+    function resetHighlights(clearStats = true) {
+      for (const table of [app.dict, app.con]) {
+        table.activeBucket = null;
+        table.activeEntry = null;
+        table.duplicateEntry = null;
+        table.activeLock = null;
+        table.heldLocks.clear();
+        table.pending = null;
+        table.resize = null;
+      }
+      if (clearStats) {
+        app.currentHash = null;
+        app.currentBucket = null;
+        app.currentLock = null;
+      }
+    }
+
+    async function addOperation() {
+      if (!timelineIsAtFinalStep()) {
+        showToast("Дойдите до последнего шага текущего Add, затем запускайте следующий.");
+        return;
+      }
+
+      const key = ui.keyInput.value.trim();
+      const value = ui.valueInput.value.trim();
+
+      if (!key) {
+        showToast("Ключ не должен быть пустым.");
+        ui.keyInput.focus();
+        return;
+      }
+
+      timeline = null;
+      timelineBuilder = { steps: [] };
+      resetHighlights(true);
+
+      try {
+        const hash = stableHash(key);
+        const dictStartBucket = bucketOf(hash, app.dict.capacity);
+        const conStartBucket = bucketOf(hash, app.con.capacity);
+        const conStartLock = lockOf(conStartBucket, app.con.lockCount);
+
+        app.currentHash = hash;
+        app.currentBucket = dictStartBucket;
+        app.currentLock = conStartLock;
+        app.dict.pending = { key, value, hash, bucket: dictStartBucket };
+        app.con.pending = { key, value, hash, bucket: conStartBucket, lock: conStartLock };
+
+        await stage(
+          "Начали Add",
+          `key = "${key}", value = "${value}". Оба стенда получают одну вставку.`,
+          `Add("${key}", "${value}")`,
+          { hash, bucket: dictStartBucket, lock: conStartLock }
+        );
+
+        await stage(
+          "Вычислили hashCode",
+          "Для стенда hashCode стабильный, чтобы видео каждый раз выглядело одинаково.",
+          `hashCode = stableHash("${key}")\nhashCode = ${hash}`,
+          { hash, bucket: dictStartBucket, lock: conStartLock }
+        );
+
+        app.dict.activeBucket = dictStartBucket;
+        app.con.activeBucket = conStartBucket;
+        await stage(
+          "Нашли bucket",
+          `Dictionary: ${hash} % ${app.dict.capacity} = ${dictStartBucket}. ConcurrentDictionary: ${hash} % ${app.con.capacity} = ${conStartBucket}.`,
+          `bucket = hashCode % buckets.Length\nDictionary.bucket = ${dictStartBucket}\nConcurrentDictionary.bucket = ${conStartBucket}`,
+          { hash, bucket: dictStartBucket, lock: conStartLock }
+        );
+
+        app.con.activeLock = conStartLock;
+        app.con.heldLocks.add(conStartLock);
+        await stage(
+          "ConcurrentDictionary взял lock",
+          `Bucket ${conStartBucket} обслуживает lock ${conStartLock}. Остальные полосы могли бы работать параллельно.`,
+          `lockNo = bucket % locks.Length\nlockNo = ${conStartBucket} % ${app.con.lockCount} = ${conStartLock}\nMonitor.Enter(locks[${conStartLock}])`,
+          { hash, bucket: dictStartBucket, lock: conStartLock }
+        );
+
+        const dictDuplicate = findEntryInBucket(app.dict, dictStartBucket, key);
+        const conDuplicate = findEntryInBucket(app.con, conStartBucket, key);
+        const dictHasCollision = chainFor(app.dict, dictStartBucket).length > 0;
+        const conHasCollision = chainFor(app.con, conStartBucket).length > 0;
+
+        if (dictHasCollision || conHasCollision) {
+          await stage(
+            "Проверили цепочку bucket",
+            "Bucket уже не пустой: структура проходит по next и сравнивает ключи.",
+            `for (entry = buckets[bucket]; entry != -1; entry = entries[entry].next)\n    if (entries[entry].key == key) throw;`,
+            { hash, bucket: dictStartBucket, lock: conStartLock }
+          );
+        } else {
+          await stage(
+            "Bucket свободен",
+            "Цепочки нет, новый элемент станет первым узлом bucket.",
+            `buckets[${dictStartBucket}] == -1`,
+            { hash, bucket: dictStartBucket, lock: conStartLock }
+          );
+        }
+
+        if (dictDuplicate !== -1 || conDuplicate !== -1) {
+          app.dict.duplicateEntry = dictDuplicate;
+          app.con.duplicateEntry = conDuplicate;
+          await stage(
+            "Ключ уже есть",
+            "Dictionary.Add завершился бы исключением. ConcurrentDictionary.TryAdd вернул бы false.",
+            `Dictionary.Add: ArgumentException\nConcurrentDictionary.TryAdd: false`,
+            { hash, bucket: dictStartBucket, lock: conStartLock, extraDelay: 260 }
+          );
+          app.con.heldLocks.clear();
+          await stage(
+            "Lock освобожден",
+            "Состояние таблиц не изменилось.",
+            `Monitor.Exit(locks[${conStartLock}])`,
+            { hash, bucket: dictStartBucket, lock: "-" }
+          );
+          return;
+        }
+
+        let dictBucket = dictStartBucket;
+        let conBucket = conStartBucket;
+        let conLock = conStartLock;
+
+        if (app.dict.entries.length + 1 > loadLimit(app.dict)) {
+          dictBucket = await resizeTable(app.dict, refs.dict, key, hash, "Dictionary");
+        }
+
+        if (app.con.entries.length + 1 > loadLimit(app.con)) {
+          app.con.heldLocks = new Set(Array.from({ length: app.con.lockCount }, (_, index) => index));
+          await stage(
+            "ConcurrentDictionary готовит grow",
+            "Для замены table он удерживает все lock-stripes, чтобы никто не писал в старые buckets.",
+            `AcquireAllLocks()\nnewBuckets = new Node[${app.con.capacity * 2}]`,
+            { hash, bucket: conBucket, lock: "all", extraDelay: 220 }
+          );
+          conBucket = await resizeTable(app.con, refs.con, key, hash, "ConcurrentDictionary");
+          conLock = lockOf(conBucket, app.con.lockCount);
+          app.con.heldLocks = new Set([conLock]);
+          app.con.activeLock = conLock;
+          await stage(
+            "Вернулись к нужной полосе",
+            `После grow новый bucket = ${conBucket}, значит активный lock = ${conLock}.`,
+            `bucket = ${hash} % ${app.con.capacity} = ${conBucket}\nlockNo = ${conBucket} % ${app.con.lockCount} = ${conLock}`,
+            { hash, bucket: dictBucket, lock: conLock }
+          );
+        }
+
+        const dictCollisionAfterResize = chainFor(app.dict, dictBucket).length > 0;
+        const conCollisionAfterResize = chainFor(app.con, conBucket).length > 0;
+
+        app.dict.activeBucket = dictBucket;
+        app.con.activeBucket = conBucket;
+
+        await stage(
+          dictCollisionAfterResize || conCollisionAfterResize ? "Разрешили коллизию" : "Подготовили свободную ячейку",
+          dictCollisionAfterResize || conCollisionAfterResize
+            ? "Новый узел станет головой цепочки, а next укажет на прежний первый entry."
+            : "Bucket пустой, поэтому next будет -1.",
+          `newEntry.next = buckets[bucket]\nbuckets[bucket] = newEntryIndex`,
+          { hash, bucket: dictBucket, lock: conLock }
+        );
+
+        const dictIndex = insertEntry(app.dict, key, value, hash, dictBucket);
+        const conIndex = insertEntry(app.con, key, value, hash, conBucket);
+        app.con.activeLock = conLock;
+        app.con.heldLocks.add(conLock);
+
+        await stage(
+          "Записали entry",
+          `Dictionary добавил e${dictIndex}. ConcurrentDictionary добавил n${conIndex}. Bucket теперь указывает на новый узел.`,
+          `entries[${dictIndex}] = { hashCode, key, value, next }\nbuckets[${dictBucket}] = ${dictIndex}`,
+          { hash, bucket: dictBucket, lock: conLock, extraDelay: 180 }
+        );
+
+        app.con.heldLocks.clear();
+        app.con.activeLock = null;
+        await stage(
+          "Add завершен",
+          "Lock отпущен. Вставка видна в buckets и entries.",
+          `Monitor.Exit(locks[${conLock}])\nreturn;`,
+          { hash, bucket: dictBucket, lock: "-" }
+        );
+      } finally {
+        resetHighlights(false);
+        const steps = timelineBuilder.steps;
+        timeline = steps.length ? { steps, index: 0 } : null;
+        timelineBuilder = null;
+        if (timeline) {
+          app = cloneAppState(timeline.steps[0]);
+        }
+        render();
+      }
+    }
+
+    async function resizeTable(table, tableRefs, key, hash, label) {
+      const oldCapacity = table.capacity;
+      const newCapacity = oldCapacity * 2;
+      table.resize = buildResizeState(table, newCapacity);
+      table.activeBucket = null;
+      table.activeEntry = null;
+
+      await stage(
+        `${label}: увеличили buckets`,
+        `Load factor превысил ${LOAD_FACTOR}. Создаем новый массив buckets: ${oldCapacity} -> ${newCapacity}.`,
+        `if (count + 1 > buckets.Length * ${LOAD_FACTOR})\n    Resize(${newCapacity});`,
+        { hash, bucket: "-", lock: table.kind === "concurrent" ? "all" : app.currentLock, extraDelay: 260 }
+      );
+
+      for (const entry of table.entries) {
+        const newBucket = bucketOf(entry.hash, newCapacity);
+        table.resize.movingIndex = entry.index;
+        table.resize.movingBucket = newBucket;
+        table.activeEntry = entry.index;
+
+        await stage(
+          `${label}: rehash entry ${entry.index}`,
+          `"${entry.key}" переезжает: ${entry.hash} % ${newCapacity} = ${newBucket}.`,
+          `newBucket = entry.hashCode % newBuckets.Length\nnewBucket = ${entry.hash} % ${newCapacity} = ${newBucket}`,
+          { hash, bucket: newBucket, lock: table.kind === "concurrent" ? "all" : app.currentLock }
+        );
+
+        table.resize.newChains[newBucket].unshift(entry.index);
+        await stage(
+          `${label}: переложили entry ${entry.index}`,
+          `Entry ${entry.index} теперь показан в новом bucket ${newBucket}.`,
+          `entry.next = newBuckets[${newBucket}]\nnewBuckets[${newBucket}] = ${entry.index}`,
+          { hash, bucket: newBucket, lock: table.kind === "concurrent" ? "all" : app.currentLock }
+        );
+      }
+
+      rebuildForCapacity(table, newCapacity);
+      table.resize = null;
+      table.activeEntry = null;
+      const newBucketForKey = bucketOf(hash, table.capacity);
+      table.activeBucket = newBucketForKey;
+
+      await stage(
+        `${label}: resize готов`,
+        `Для нового ключа bucket пересчитан: ${hash} % ${table.capacity} = ${newBucketForKey}.`,
+        `buckets = newBuckets\nbucket = ${hash} % ${table.capacity} = ${newBucketForKey}`,
+        { hash, bucket: newBucketForKey, lock: table.kind === "concurrent" ? app.currentLock : app.currentLock }
+      );
+
+      return newBucketForKey;
+    }
+
+    function renderTabs() {
+      refs.dict.panel.hidden = activeTab !== "dict";
+      refs.con.panel.hidden = activeTab !== "con";
+      ui.dictTab.classList.toggle("active", activeTab === "dict");
+      ui.conTab.classList.toggle("active", activeTab === "con");
+      ui.dictTab.setAttribute("aria-selected", activeTab === "dict" ? "true" : "false");
+      ui.conTab.setAttribute("aria-selected", activeTab === "con" ? "true" : "false");
+    }
+
+    function setActiveTab(tab) {
+      activeTab = tab;
+      renderTabs();
+    }
+
+    function render() {
+      setText(ui.stepCounter, app.step);
+      setText(ui.stepTitle, app.title);
+      setText(ui.stepDetail, app.detail);
+      setText(ui.codeBox, app.code);
+      setText(ui.hashStat, app.currentHash === null ? "-" : app.currentHash);
+      setText(ui.bucketStat, app.currentBucket === null ? "-" : app.currentBucket);
+      setText(ui.lockStat, app.currentLock === null ? "-" : app.currentLock);
+      renderLog();
+      renderTable(app.dict, refs.dict);
+      renderTable(app.con, refs.con);
+      updateControls();
+    }
+
+    function renderLog() {
+      const fragment = document.createDocumentFragment();
+      for (const event of app.log) {
+        const item = createEl("div", event.index === app.step ? "event active" : "event");
+        item.appendChild(createEl("div", "event-index", String(event.index)));
+        const body = createEl("div");
+        body.appendChild(createEl("div", "event-title", event.title));
+        body.appendChild(createEl("div", "event-text", event.detail));
+        item.appendChild(body);
+        fragment.appendChild(item);
+      }
+      ui.eventLog.replaceChildren(fragment);
+    }
+
+    function renderTable(table, tableRefs) {
+      renderMetrics(table, tableRefs.metrics);
+      renderBuckets(table, tableRefs);
+      renderEntries(table, tableRefs.entries);
+      renderResize(table, tableRefs);
+      if (table.kind === "concurrent") renderLocks(table, tableRefs);
+    }
+
+    function renderMetrics(table, container) {
+      const items = [
+        ["count", table.entries.length],
+        ["buckets", table.capacity],
+        ["limit", loadLimit(table)]
+      ];
+      if (table.kind === "concurrent") {
+        items.push(["CPU", app.processorCount]);
+        items.push(["locks", table.lockCount]);
+      }
+      const fragment = document.createDocumentFragment();
+      for (const [label, value] of items) {
+        const pill = createEl("div", "metric-pill");
+        pill.appendChild(createEl("span", "", label));
+        pill.appendChild(createEl("strong", "", String(value)));
+        fragment.appendChild(pill);
+      }
+      container.replaceChildren(fragment);
+    }
+
+    function renderBuckets(table, tableRefs) {
+      const cols = Math.min(table.capacity, 8);
+      tableRefs.buckets.style.setProperty("--cols", cols);
+      tableRefs.bucketHint.textContent = table.pending ? `hash ${table.pending.hash}` : "";
+
+      const fragment = document.createDocumentFragment();
+      for (let i = 0; i < table.capacity; i += 1) {
+        const chain = chainFor(table, i);
+        const bucket = createEl("div", "bucket");
+        if (table.activeBucket === i) bucket.classList.add("active");
+        if (chain.length > 1) bucket.classList.add("collision");
+        if (table.duplicateEntry !== null && chain.includes(table.duplicateEntry)) bucket.classList.add("duplicate");
+
+        const head = createEl("div", "bucket-index");
+        head.appendChild(createEl("span", "", `[${i}]`));
+        head.appendChild(createEl("span", "", table.buckets[i] === -1 ? "-1" : `e${table.buckets[i]}`));
+        bucket.appendChild(head);
+
+        const chainNode = createEl("div", "bucket-chain");
+        if (chain.length === 0) {
+          chainNode.appendChild(createEl("div", "empty-cell", "empty"));
+        } else {
+          for (const entryIndex of chain) {
+            chainNode.appendChild(renderEntryNode(table, entryIndex));
+          }
+        }
+        bucket.appendChild(chainNode);
+        fragment.appendChild(bucket);
+      }
+      tableRefs.buckets.replaceChildren(fragment);
+    }
+
+    function renderEntryNode(table, entryIndex) {
+      const entry = table.entries[entryIndex];
+      const node = createEl("div", "node");
+      if (table.activeEntry === entryIndex) node.classList.add("active");
+      if (table.resize && table.resize.movingIndex === entryIndex) node.classList.add("moving");
+      if (table.duplicateEntry === entryIndex) node.classList.add("duplicate");
+      node.appendChild(createEl("div", "node-id", `e${entry.index}  next:${entry.next === -1 ? "-1" : `e${entry.next}`}`));
+      node.appendChild(createEl("div", "node-key", entry.key));
+      node.appendChild(createEl("div", "node-value", entry.value));
+      return node;
+    }
+
+    function bucketsForLock(table, lockIndex) {
+      const buckets = [];
+      for (let bucketIndex = lockIndex; bucketIndex < table.capacity; bucketIndex += table.lockCount) {
+        buckets.push(bucketIndex);
+      }
+      return buckets;
+    }
+
+    function renderLocks(table, tableRefs) {
+      tableRefs.locks.style.setProperty("--lock-cols", Math.min(table.lockCount, 4));
+      tableRefs.lockHint.textContent = table.pending
+        ? `bucket ${table.pending.bucket} -> lock ${lockOf(table.pending.bucket, table.lockCount)}`
+        : `locks = processorCount = ${app.processorCount}`;
+      const fragment = document.createDocumentFragment();
+      for (let i = 0; i < table.lockCount; i += 1) {
+        const lock = createEl("div", "lock-cell");
+        if (table.activeLock === i) lock.classList.add("active");
+        if (table.heldLocks.has(i)) lock.classList.add("held");
+        lock.appendChild(createEl("div", "lock-name", `L${i}`));
+        lock.appendChild(createEl("div", "lock-state", table.heldLocks.has(i) ? "held" : "free"));
+        lock.appendChild(createEl("div", "lock-buckets", `buckets ${bucketsForLock(table, i).join(", ")}`));
+        fragment.appendChild(lock);
+      }
+      tableRefs.locks.replaceChildren(fragment);
+    }
+
+    function renderEntries(table, container) {
+      const tableHead = document.createElement("thead");
+      const headRow = document.createElement("tr");
+      for (const name of ["idx", "hash", "key", "value", "next"]) {
+        headRow.appendChild(createEl("th", "", name));
+      }
+      tableHead.appendChild(headRow);
+
+      const tableBody = document.createElement("tbody");
+      if (table.entries.length === 0) {
+        const row = document.createElement("tr");
+        const cell = createEl("td", "", "empty");
+        cell.colSpan = 5;
+        row.appendChild(cell);
+        tableBody.appendChild(row);
+      } else {
+        for (const entry of table.entries) {
+          const row = document.createElement("tr");
+          if (table.activeEntry === entry.index || table.duplicateEntry === entry.index) row.classList.add("active");
+          row.appendChild(createEl("td", "mono", `e${entry.index}`));
+          row.appendChild(createEl("td", "mono", String(entry.hash)));
+          row.appendChild(createEl("td", "", entry.key));
+          row.appendChild(createEl("td", "", entry.value));
+          row.appendChild(createEl("td", "mono", entry.next === -1 ? "-1" : `e${entry.next}`));
+          tableBody.appendChild(row);
+        }
+      }
+      container.replaceChildren(tableHead, tableBody);
+    }
+
+    function renderResize(table, tableRefs) {
+      const resize = table.resize;
+      tableRefs.resizeLane.classList.toggle("visible", Boolean(resize));
+      if (!resize) {
+        tableRefs.oldBuckets.replaceChildren();
+        tableRefs.newBuckets.replaceChildren();
+        tableRefs.resizeText.textContent = "";
+        return;
+      }
+
+      tableRefs.resizeText.textContent = `${resize.fromCapacity} -> ${resize.toCapacity}`;
+      renderMiniBuckets(table, resize.oldBuckets, tableRefs.oldBuckets, resize.fromCapacity, "old", resize);
+      renderMiniChains(table, resize.newChains, tableRefs.newBuckets, resize.toCapacity, resize);
+    }
+
+    function renderMiniBuckets(table, buckets, container, capacity, mode, resize) {
+      const cols = Math.min(capacity, 8);
+      container.style.setProperty("--mini-cols", cols);
+      const fragment = document.createDocumentFragment();
+      for (let i = 0; i < capacity; i += 1) {
+        const cell = createEl("div", "mini-cell");
+        if (resize.movingBucket === i && mode === "new") cell.classList.add("active");
+        cell.appendChild(createEl("span", "mini-index", `${mode}[${i}]`));
+        const chain = createEl("div", "mini-chain");
+        const chainIndexes = chainFor(table, i, buckets);
+        if (chainIndexes.length === 0) {
+          chain.appendChild(createEl("span", "mini-chip", "-"));
+        } else {
+          for (const entryIndex of chainIndexes) {
+            chain.appendChild(createEl("span", "mini-chip", `e${entryIndex}:${shortText(table.entries[entryIndex].key, 9)}`));
+          }
+        }
+        cell.appendChild(chain);
+        fragment.appendChild(cell);
+      }
+      container.replaceChildren(fragment);
+    }
+
+    function renderMiniChains(table, chains, container, capacity, resize) {
+      const cols = Math.min(capacity, 8);
+      container.style.setProperty("--mini-cols", cols);
+      const fragment = document.createDocumentFragment();
+      for (let i = 0; i < capacity; i += 1) {
+        const cell = createEl("div", "mini-cell");
+        if (resize.movingBucket === i) cell.classList.add("active");
+        cell.appendChild(createEl("span", "mini-index", `new[${i}]`));
+        const chain = createEl("div", "mini-chain");
+        if (chains[i].length === 0) {
+          chain.appendChild(createEl("span", "mini-chip", "-"));
+        } else {
+          for (const entryIndex of chains[i]) {
+            chain.appendChild(createEl("span", "mini-chip", `e${entryIndex}:${shortText(table.entries[entryIndex].key, 9)}`));
+          }
+        }
+        cell.appendChild(chain);
+        fragment.appendChild(cell);
+      }
+      container.replaceChildren(fragment);
+    }
+
+    function showToast(message) {
+      window.clearTimeout(toastTimer);
+      ui.toast.textContent = message;
+      ui.toast.classList.add("visible");
+      toastTimer = window.setTimeout(() => ui.toast.classList.remove("visible"), 2600);
+    }
+
+    function fillCollisionKey() {
+      if (!timelineIsAtFinalStep()) return;
+      const capacity = app.dict.capacity;
+      const occupiedBuckets = [];
+      for (let i = 0; i < capacity; i += 1) {
+        if (app.dict.buckets[i] !== -1) occupiedBuckets.push(i);
+      }
+
+      if (occupiedBuckets.length === 0) {
+        ui.keyInput.value = "Aa";
+        ui.valueInput.value = "first";
+        showToast("Сначала добавьте Aa, затем нажмите сценарий еще раз.");
+        return;
+      }
+
+      const used = new Set(app.dict.entries.map(entry => entry.key));
+      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      for (const first of alphabet) {
+        for (const second of alphabet) {
+          const candidate = first + second;
+          if (used.has(candidate)) continue;
+          const hash = stableHash(candidate);
+          const bucket = bucketOf(hash, capacity);
+          if (occupiedBuckets.includes(bucket)) {
+            ui.keyInput.value = candidate;
+            ui.valueInput.value = `collision-${bucket}`;
+            showToast(`Подобран bucket ${bucket}.`);
+            return;
+          }
+        }
+      }
+      showToast("Не удалось быстро подобрать коллизию.");
+    }
+
+    function fillResizeKey() {
+      if (!timelineIsAtFinalStep()) return;
+      const used = new Set(app.dict.entries.map(entry => entry.key));
+      const base = ["Aa", "BB", "Cat", "Dog", "Key1", "Key2", "Hash", "Lock", "Resize", "Move"];
+      const next = base.find(key => !used.has(key)) || `K${app.dict.entries.length + 1}`;
+      ui.keyInput.value = next;
+      ui.valueInput.value = app.dict.entries.length + 1 > loadLimit(app.dict)
+        ? "resize-now"
+        : `item-${app.dict.entries.length + 1}`;
+      const remaining = Math.max(0, loadLimit(app.dict) - app.dict.entries.length + 1);
+      showToast(remaining <= 1 ? "Следующий Add запустит resize." : `До resize осталось Add: ${remaining}.`);
+    }
+
+    function resetAll(options = {}) {
+      const previousKey = ui.keyInput.value;
+      const previousValue = ui.valueInput.value;
+      timeline = null;
+      timelineBuilder = null;
+      app = createAppState(processorCount);
+      ui.keyInput.value = options.keepInputs ? previousKey : "Aa";
+      ui.valueInput.value = options.keepInputs ? previousValue : "first";
+      ui.stepCounter.textContent = "0";
+      ui.stepTitle.textContent = "Готов к Add";
+      ui.stepDetail.textContent = "Введите ключ и значение. Оба стенда начнут одну и ту же вставку.";
+      ui.codeBox.textContent = "Dictionary<string, string> table = new();";
+      render();
+    }
+
+    ui.addBtn.addEventListener("click", addOperation);
+    ui.resetBtn.addEventListener("click", resetAll);
+    ui.processorInput.addEventListener("input", () => setProcessorCount(ui.processorInput.value));
+    ui.processorMinusBtn.addEventListener("click", () => setProcessorCount(processorCount - 1));
+    ui.processorPlusBtn.addEventListener("click", () => setProcessorCount(processorCount + 1));
+    ui.prevBtn.addEventListener("click", () => {
+      if (timeline) showTimelineStep(timeline.index - 1);
+    });
+    ui.nextBtn.addEventListener("click", () => {
+      if (timeline) showTimelineStep(timeline.index + 1);
+    });
+    ui.dictTab.addEventListener("click", () => setActiveTab("dict"));
+    ui.conTab.addEventListener("click", () => setActiveTab("con"));
+    ui.collisionBtn.addEventListener("click", fillCollisionKey);
+    ui.resizeBtn.addEventListener("click", fillResizeKey);
+    ui.keyInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") ui.valueInput.focus();
+    });
+    ui.valueInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") addOperation();
+    });
+
+    render();
+  </script>
+</body>
+</html>
