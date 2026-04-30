@@ -6,6 +6,11 @@ import concurrencyIconUrl from "./assets/icons/concurrency.svg";
 import mainImageUrl from "./assets/images/main_image.jpg";
 import { SiteLayout } from "./components/SiteLayout.jsx";
 
+const authorLinks = {
+  github: "https://github.com/makushevski",
+  linkedin: "https://www.linkedin.com/in/makushevskii/"
+};
+
 const labs = [
   {
     title: "Dictionary<TKey, TValue>",
@@ -30,7 +35,7 @@ const pageMeta = {
   "index.html": "DotNet Visual Lab",
   "labs.html": "Labs | DotNet Visual Lab",
   "methodology.html": "Methodology | DotNet Visual Lab",
-  "about-author.html": "About the author | DotNet Visual Lab",
+  "about-author.html": "Denis Makushevskii | DotNet Visual Lab",
   "privacy.html": "Privacy | DotNet Visual Lab"
 };
 
@@ -199,12 +204,36 @@ function AboutAuthorPage() {
     <>
       <section className="page-hero container">
         <p className="eyebrow">Project Author</p>
-        <h1>About the author</h1>
+        <h1>Denis Makushevskii</h1>
+        <p className="page-copy">.NET software engineer focused on backend systems, runtime internals, observability, performance, and clear engineering education.</p>
       </section>
 
       <section className="container">
-        <div className="content-panel">
-          <p>DotNet Visual Lab is created by Denis Makushevski, a .NET software engineer focused on backend development, .NET internals, observability, performance, and educational visualizations.</p>
+        <div className="content-panel author-panel">
+          <p>DotNet Visual Lab is created by Denis Makushevskii. The project turns implementation details from .NET collections, concurrency, and runtime behavior into interactive visual models that are easier to inspect and discuss.</p>
+          <p>The focus is practical: connect source code, documentation, and experiments to visuals that help developers reason about real implementation tradeoffs.</p>
+          <div className="social-links" aria-label="Author social links">
+            <a
+              className="social-link"
+              href={authorLinks.linkedin}
+              target="_blank"
+              rel="noreferrer"
+              {...trackingProps({ category: "external_link", label: "author_linkedin", placement: "about_author" })}
+            >
+              <span className="social-icon social-icon-linkedin" aria-hidden="true">in</span>
+              LinkedIn
+            </a>
+            <a
+              className="social-link"
+              href={authorLinks.github}
+              target="_blank"
+              rel="noreferrer"
+              {...trackingProps({ category: "external_link", label: "author_github", placement: "about_author" })}
+            >
+              <span className="social-icon social-icon-github" aria-hidden="true">GH</span>
+              GitHub
+            </a>
+          </div>
         </div>
       </section>
     </>

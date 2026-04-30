@@ -444,6 +444,58 @@ button:focus-visible {
   margin-bottom: 0;
 }
 
+.author-panel {
+  max-width: 920px;
+}
+
+.social-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  background: rgba(10, 18, 32, 0.82);
+  color: #ffffff;
+  font-weight: 760;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.social-link:hover {
+  transform: translateY(-1px);
+  border-color: rgba(148, 163, 184, 0.52);
+  background: rgba(17, 29, 49, 0.92);
+}
+
+.social-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.social-icon-linkedin {
+  background: #0a66c2;
+}
+
+.social-icon-github {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: #0f172a;
+}
+
 .content-list {
   display: grid;
   gap: 10px;
