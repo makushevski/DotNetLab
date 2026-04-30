@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { trackingProps } from "../analytics/tracking.js";
 import logoUrl from "../assets/images/logo.png";
 
 export const MAX_LOG_ITEMS = 10;
@@ -35,7 +36,11 @@ export function LabHeader({ activeLab, title, children }) {
     <header className="topbar">
       <div>
         <div className="lab-brand-row">
-          <a className="lab-brand" href="../index.html">
+          <a
+            className="lab-brand"
+            href="../index.html"
+            {...trackingProps({ category: "navigation", label: "lab_header_home", placement: "lab_header" })}
+          >
             <img src={logoUrl} alt="" />
             <span>DotNet Visual Lab</span>
           </a>
@@ -46,10 +51,26 @@ export function LabHeader({ activeLab, title, children }) {
         <p className="hero-copy">{children}</p>
       </div>
       <nav className="nav" aria-label="Lab navigation">
-        <a href="../labs.html">Labs</a>
-        <a className={activeLab === "dictionary" ? "active" : undefined} href="dictionary.html">Dictionary</a>
-        <a className={activeLab === "concurrent" ? "active" : undefined} href="concurrent-dictionary.html">Concurrent</a>
-        <a href="../methodology.html">Methodology</a>
+        <a href="../labs.html" {...trackingProps({ category: "navigation", label: "lab_nav_labs", placement: "lab_header" })}>
+          Labs
+        </a>
+        <a
+          className={activeLab === "dictionary" ? "active" : undefined}
+          href="dictionary.html"
+          {...trackingProps({ category: "navigation", label: "lab_nav_dictionary", placement: "lab_header" })}
+        >
+          Dictionary
+        </a>
+        <a
+          className={activeLab === "concurrent" ? "active" : undefined}
+          href="concurrent-dictionary.html"
+          {...trackingProps({ category: "navigation", label: "lab_nav_concurrent_dictionary", placement: "lab_header" })}
+        >
+          Concurrent
+        </a>
+        <a href="../methodology.html" {...trackingProps({ category: "navigation", label: "lab_nav_methodology", placement: "lab_header" })}>
+          Methodology
+        </a>
       </nav>
     </header>
   );
@@ -86,11 +107,23 @@ export function Narrator({ model, timeline, timelineIndex, onPrevious, onNext })
   return (
     <aside className="narrator" aria-live="polite">
       <div className="step-controls" aria-label="Timeline navigation">
-        <button type="button" disabled={!canGoPrevious} onClick={onPrevious} aria-keyshortcuts="ArrowLeft">
+        <button
+          type="button"
+          disabled={!canGoPrevious}
+          onClick={onPrevious}
+          aria-keyshortcuts="ArrowLeft"
+          {...trackingProps({ category: "timeline", label: "timeline_previous", placement: "narrator" })}
+        >
           Previous
         </button>
         <span className="timeline-status">{timelineStatus}</span>
-        <button type="button" disabled={!canGoNext} onClick={onNext} aria-keyshortcuts="ArrowRight">
+        <button
+          type="button"
+          disabled={!canGoNext}
+          onClick={onNext}
+          aria-keyshortcuts="ArrowRight"
+          {...trackingProps({ category: "timeline", label: "timeline_next", placement: "narrator" })}
+        >
           Next
         </button>
       </div>

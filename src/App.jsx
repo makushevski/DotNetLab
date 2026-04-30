@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { trackingProps, withUtm } from "./analytics/tracking.js";
 import logoUrl from "./assets/images/logo.png";
 import mainImageUrl from "./assets/images/main_image.png";
 
@@ -73,15 +74,25 @@ function SiteHeader({ currentPage }) {
   return (
     <header className="site-header">
       <div className="container header-inner">
-        <a className="brand" href="index.html" aria-label="DotNet Visual Lab home">
+        <a
+          className="brand"
+          href="index.html"
+          aria-label="DotNet Visual Lab home"
+          {...trackingProps({ category: "navigation", label: "home_brand", placement: "site_header" })}
+        >
           <img className="brand-icon" src={logoUrl} alt="" />
           <span className="brand-text">DotNet Visual Lab</span>
           <span className="version-badge">v0.1</span>
         </a>
         <nav className="site-nav" aria-label="Primary navigation">
-          <NavLink href="labs.html" currentPage={currentPage}>Labs</NavLink>
-          <NavLink href="methodology.html" currentPage={currentPage}>Methodology</NavLink>
-          <a href={githubUrl}>GitHub</a>
+          <NavLink href="labs.html" currentPage={currentPage} label="header_labs" placement="site_header">Labs</NavLink>
+          <NavLink href="methodology.html" currentPage={currentPage} label="header_methodology" placement="site_header">Methodology</NavLink>
+          <a
+            href={withUtm(githubUrl, "header_github", "site_navigation")}
+            {...trackingProps({ category: "external_link", label: "header_github", placement: "site_header" })}
+          >
+            GitHub
+          </a>
         </nav>
       </div>
     </header>
@@ -94,19 +105,28 @@ function SiteFooter({ currentPage }) {
       <div className="container footer-inner">
         <span>Copyright 2026 DotNet Visual Lab.</span>
         <nav className="footer-links" aria-label="Footer navigation">
-          <NavLink href="about-author.html" currentPage={currentPage}>About the author</NavLink>
-          <NavLink href="privacy.html" currentPage={currentPage}>Privacy</NavLink>
-          <a href={githubUrl}>GitHub</a>
+          <NavLink href="about-author.html" currentPage={currentPage} label="footer_about_author" placement="site_footer">About the author</NavLink>
+          <NavLink href="privacy.html" currentPage={currentPage} label="footer_privacy" placement="site_footer">Privacy</NavLink>
+          <a
+            href={withUtm(githubUrl, "footer_github", "site_navigation")}
+            {...trackingProps({ category: "external_link", label: "footer_github", placement: "site_footer" })}
+          >
+            GitHub
+          </a>
         </nav>
       </div>
     </footer>
   );
 }
 
-function NavLink({ href, currentPage, children }) {
+function NavLink({ href, currentPage, children, label, placement }) {
   const isCurrent = href === currentPage;
   return (
-    <a href={href} aria-current={isCurrent ? "page" : undefined}>
+    <a
+      href={href}
+      aria-current={isCurrent ? "page" : undefined}
+      {...trackingProps({ category: "navigation", label, placement })}
+    >
       {children}
     </a>
   );
@@ -124,11 +144,19 @@ function HomePage() {
           </h1>
           <p className="hero-copy">Interactive visual labs for collections, concurrency, async/await, runtime behavior, memory, and performance.</p>
           <div className="hero-actions">
-            <a className="button button-primary" href="labs.html">
+            <a
+              className="button button-primary"
+              href="labs.html"
+              {...trackingProps({ category: "cta", label: "hero_explore_labs", placement: "home_hero" })}
+            >
               <span className="button-mark button-mark-logo" aria-hidden="true"></span>
               Explore Labs
             </a>
-            <a className="button" href={githubUrl}>
+            <a
+              className="button"
+              href={withUtm(githubUrl, "hero_github", "home_cta")}
+              {...trackingProps({ category: "external_link", label: "hero_github", placement: "home_hero" })}
+            >
               <span className="button-mark button-mark-github" aria-hidden="true">GH</span>
               View on GitHub
             </a>
@@ -154,7 +182,13 @@ function HomePage() {
             <h2>Built for accuracy</h2>
             <p>Every lab is an educational model checked against .NET source code, Microsoft documentation, and local experiments. Simplifications are documented where needed.</p>
           </div>
-          <a className="button" href="methodology.html">Learn our methodology</a>
+          <a
+            className="button"
+            href="methodology.html"
+            {...trackingProps({ category: "cta", label: "methodology_banner", placement: "home_methodology_banner" })}
+          >
+            Learn our methodology
+          </a>
         </div>
       </section>
     </>
@@ -189,7 +223,11 @@ function LabGrid() {
 
 function LabCard({ lab }) {
   return (
-    <a className="lab-card" href={lab.href}>
+    <a
+      className="lab-card"
+      href={lab.href}
+      {...trackingProps({ category: "lab_card", label: `open_${lab.title}`, placement: "lab_grid" })}
+    >
       <span className={`sprite-icon ${lab.iconClass}`} aria-hidden="true"></span>
       <div className="lab-card-body">
         <span className={`badge ${lab.badgeClass ?? ""}`}>{lab.difficulty}</span>

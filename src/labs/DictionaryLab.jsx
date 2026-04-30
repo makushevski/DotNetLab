@@ -12,8 +12,15 @@ import {
   focusClass,
   stableHash32
 } from "./LabScaffold.jsx";
+import { trackingProps, withUtm } from "../analytics/tracking.js";
 
 const PRIMES = [3, 7, 17, 37, 73];
+const DICTIONARY_SOURCE_URL =
+  "https://github.com/dotnet/runtime/blob/release/10.0/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/Dictionary.cs";
+const DICTIONARY_DOCS_URL = "https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2?view=net-10.0";
+const DICTIONARY_ADD_DOCS_URL = "https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2.add?view=net-10.0";
+const DICTIONARY_TRY_GET_VALUE_DOCS_URL =
+  "https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2.trygetvalue?view=net-10.0";
 
 function createDictionaryModel() {
   return {
@@ -514,13 +521,30 @@ export default function DictionaryLab() {
               }}
             />
           </label>
-          <button className="primary-action" type="button" disabled={locked} onClick={addOperation}>
+          <button
+            className="primary-action"
+            type="button"
+            disabled={locked}
+            onClick={addOperation}
+            {...trackingProps({ category: "lab_operation", label: "dictionary_add", placement: "dictionary_controls" })}
+          >
             Add
           </button>
-          <button className="secondary-action" type="button" disabled={locked} onClick={getOperation}>
+          <button
+            className="secondary-action"
+            type="button"
+            disabled={locked}
+            onClick={getOperation}
+            {...trackingProps({ category: "lab_operation", label: "dictionary_get", placement: "dictionary_controls" })}
+          >
             Get
           </button>
-          <button className="secondary-action" type="button" onClick={resetAll}>
+          <button
+            className="secondary-action"
+            type="button"
+            onClick={resetAll}
+            {...trackingProps({ category: "lab_operation", label: "dictionary_reset", placement: "dictionary_controls" })}
+          >
             Reset
           </button>
         </section>
@@ -616,22 +640,42 @@ export default function DictionaryLab() {
             <li>The model does not fully implement remove/free-list, but keeps those fields next to the real names.</li>
             <li>
               .NET 10 source:{" "}
-              <a href="https://github.com/dotnet/runtime/blob/release/10.0/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/Dictionary.cs" target="_blank" rel="noreferrer">
+              <a
+                href={withUtm(DICTIONARY_SOURCE_URL, "dictionary_source", "reference_link")}
+                target="_blank"
+                rel="noreferrer"
+                {...trackingProps({ category: "reference_link", label: "dictionary_source", placement: "dictionary_notes" })}
+              >
                 Dictionary.cs
               </a>
               . Important locations: <code>TryInsert</code>, <code>FindValue</code>, <code>GetBucket</code>, <code>Entry</code>.
             </li>
             <li>
               Microsoft Learn documentation:{" "}
-              <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2?view=net-10.0" target="_blank" rel="noreferrer">
+              <a
+                href={withUtm(DICTIONARY_DOCS_URL, "dictionary_docs", "reference_link")}
+                target="_blank"
+                rel="noreferrer"
+                {...trackingProps({ category: "reference_link", label: "dictionary_docs", placement: "dictionary_notes" })}
+              >
                 Dictionary&lt;TKey,TValue&gt;
               </a>
               ,{" "}
-              <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2.add?view=net-10.0" target="_blank" rel="noreferrer">
+              <a
+                href={withUtm(DICTIONARY_ADD_DOCS_URL, "dictionary_add_docs", "reference_link")}
+                target="_blank"
+                rel="noreferrer"
+                {...trackingProps({ category: "reference_link", label: "dictionary_add_docs", placement: "dictionary_notes" })}
+              >
                 Add
               </a>
               ,{" "}
-              <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2.trygetvalue?view=net-10.0" target="_blank" rel="noreferrer">
+              <a
+                href={withUtm(DICTIONARY_TRY_GET_VALUE_DOCS_URL, "dictionary_try_get_value_docs", "reference_link")}
+                target="_blank"
+                rel="noreferrer"
+                {...trackingProps({ category: "reference_link", label: "dictionary_try_get_value_docs", placement: "dictionary_notes" })}
+              >
                 TryGetValue
               </a>
               .

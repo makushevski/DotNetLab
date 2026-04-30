@@ -12,8 +12,16 @@ import {
   focusClass,
   stableHashInt
 } from "./LabScaffold.jsx";
+import { trackingProps, withUtm } from "../analytics/tracking.js";
 
 const INITIAL_CAPACITY = 8;
+const CONCURRENT_SOURCE_URL =
+  "https://github.com/dotnet/runtime/blob/release/10.0/src/libraries/System.Collections.Concurrent/src/System/Collections/Concurrent/ConcurrentDictionary.cs";
+const CONCURRENT_DOCS_URL = "https://learn.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2?view=net-10.0";
+const CONCURRENT_TRY_ADD_DOCS_URL =
+  "https://learn.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2.tryadd?view=net-10.0";
+const CONCURRENT_TRY_GET_VALUE_DOCS_URL =
+  "https://learn.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2.trygetvalue?view=net-10.0";
 
 function clampConcurrency(value) {
   return Math.max(1, Math.min(8, Math.round(Number(value) || 4)));
@@ -562,13 +570,30 @@ export default function ConcurrentDictionaryLab() {
               onBlur={() => resetAll(true)}
             />
           </label>
-          <button className="primary-action" type="button" disabled={locked} onClick={tryAddOperation}>
+          <button
+            className="primary-action"
+            type="button"
+            disabled={locked}
+            onClick={tryAddOperation}
+            {...trackingProps({ category: "lab_operation", label: "concurrent_dictionary_try_add", placement: "concurrent_dictionary_controls" })}
+          >
             TryAdd
           </button>
-          <button className="secondary-action" type="button" disabled={locked} onClick={getOperation}>
+          <button
+            className="secondary-action"
+            type="button"
+            disabled={locked}
+            onClick={getOperation}
+            {...trackingProps({ category: "lab_operation", label: "concurrent_dictionary_get", placement: "concurrent_dictionary_controls" })}
+          >
             Get
           </button>
-          <button className="secondary-action" type="button" onClick={() => resetAll(false)}>
+          <button
+            className="secondary-action"
+            type="button"
+            onClick={() => resetAll(false)}
+            {...trackingProps({ category: "lab_operation", label: "concurrent_dictionary_reset", placement: "concurrent_dictionary_controls" })}
+          >
             Reset
           </button>
         </section>
@@ -671,7 +696,12 @@ export default function ConcurrentDictionaryLab() {
             <li>The model shows lock striping and grow as an educational sequence, without real multithreaded interleaving.</li>
             <li>
               .NET 10 source:{" "}
-              <a href="https://github.com/dotnet/runtime/blob/release/10.0/src/libraries/System.Collections.Concurrent/src/System/Collections/Concurrent/ConcurrentDictionary.cs" target="_blank" rel="noreferrer">
+              <a
+                href={withUtm(CONCURRENT_SOURCE_URL, "concurrent_dictionary_source", "reference_link")}
+                target="_blank"
+                rel="noreferrer"
+                {...trackingProps({ category: "reference_link", label: "concurrent_dictionary_source", placement: "concurrent_dictionary_notes" })}
+              >
                 ConcurrentDictionary.cs
               </a>
               . Important locations: <code>TryAddInternal</code>, <code>TryGetValue</code>, <code>GetBucketAndLock</code>, <code>Tables</code>,{" "}
@@ -679,15 +709,30 @@ export default function ConcurrentDictionaryLab() {
             </li>
             <li>
               Microsoft Learn documentation:{" "}
-              <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2?view=net-10.0" target="_blank" rel="noreferrer">
+              <a
+                href={withUtm(CONCURRENT_DOCS_URL, "concurrent_dictionary_docs", "reference_link")}
+                target="_blank"
+                rel="noreferrer"
+                {...trackingProps({ category: "reference_link", label: "concurrent_dictionary_docs", placement: "concurrent_dictionary_notes" })}
+              >
                 ConcurrentDictionary&lt;TKey,TValue&gt;
               </a>
               ,{" "}
-              <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2.tryadd?view=net-10.0" target="_blank" rel="noreferrer">
+              <a
+                href={withUtm(CONCURRENT_TRY_ADD_DOCS_URL, "concurrent_dictionary_try_add_docs", "reference_link")}
+                target="_blank"
+                rel="noreferrer"
+                {...trackingProps({ category: "reference_link", label: "concurrent_dictionary_try_add_docs", placement: "concurrent_dictionary_notes" })}
+              >
                 TryAdd
               </a>
               ,{" "}
-              <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2.trygetvalue?view=net-10.0" target="_blank" rel="noreferrer">
+              <a
+                href={withUtm(CONCURRENT_TRY_GET_VALUE_DOCS_URL, "concurrent_dictionary_try_get_value_docs", "reference_link")}
+                target="_blank"
+                rel="noreferrer"
+                {...trackingProps({ category: "reference_link", label: "concurrent_dictionary_try_get_value_docs", placement: "concurrent_dictionary_notes" })}
+              >
                 TryGetValue
               </a>
               .
