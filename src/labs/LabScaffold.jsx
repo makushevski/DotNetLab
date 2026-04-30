@@ -24,7 +24,7 @@ export function HintLabel({ children, tooltip, className = "" }) {
   if (!tooltip) return children;
 
   return (
-    <span className={["hint-label", className].filter(Boolean).join(" ")} data-tooltip={tooltip} title={tooltip} tabIndex={0}>
+    <span className={["hint-label", className].filter(Boolean).join(" ")} data-tooltip={tooltip} tabIndex={0}>
       {children}
     </span>
   );
