@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { trackingProps } from "../analytics/tracking.js";
-import logoUrl from "../assets/images/logo.png";
 
 export const MAX_LOG_ITEMS = 10;
 
@@ -31,48 +30,12 @@ export function HintLabel({ children, tooltip, className = "" }) {
   );
 }
 
-export function LabHeader({ activeLab, title, children }) {
+export function LabHeader({ title, children }) {
   return (
-    <header className="topbar">
-      <div>
-        <div className="lab-brand-row">
-          <a
-            className="lab-brand"
-            href="../index.html"
-            {...trackingProps({ category: "navigation", label: "lab_header_home", placement: "lab_header" })}
-          >
-            <img src={logoUrl} alt="" />
-            <span>DotNet Visual Lab</span>
-          </a>
-          <span className="version-badge">v0.1</span>
-        </div>
-        <p className="eyebrow">.NET 10 visual lab</p>
-        <h1>{title}</h1>
-        <p className="hero-copy">{children}</p>
-      </div>
-      <nav className="nav" aria-label="Lab navigation">
-        <a href="../labs.html" {...trackingProps({ category: "navigation", label: "lab_nav_labs", placement: "lab_header" })}>
-          Labs
-        </a>
-        <a
-          className={activeLab === "dictionary" ? "active" : undefined}
-          href="dictionary.html"
-          {...trackingProps({ category: "navigation", label: "lab_nav_dictionary", placement: "lab_header" })}
-        >
-          Dictionary
-        </a>
-        <a
-          className={activeLab === "concurrent" ? "active" : undefined}
-          href="concurrent-dictionary.html"
-          {...trackingProps({ category: "navigation", label: "lab_nav_concurrent_dictionary", placement: "lab_header" })}
-        >
-          Concurrent
-        </a>
-        <a href="../methodology.html" {...trackingProps({ category: "navigation", label: "lab_nav_methodology", placement: "lab_header" })}>
-          Methodology
-        </a>
-      </nav>
-    </header>
+    <section className="topbar">
+      <h1>{title}</h1>
+      <p className="hero-copy">{children}</p>
+    </section>
   );
 }
 

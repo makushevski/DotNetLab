@@ -1,9 +1,10 @@
 import { useEffect } from "react";
-import { trackingProps, withUtm } from "./analytics/tracking.js";
-import logoUrl from "./assets/images/logo.png";
-import mainImageUrl from "./assets/images/main_image.png";
-
-const githubUrl = "https://github.com/makushevski/DotNetLab";
+import { trackingProps } from "./analytics/tracking.js";
+import codeIconUrl from "./assets/icons/code.svg";
+import collectionsIconUrl from "./assets/icons/collections.svg";
+import concurrencyIconUrl from "./assets/icons/concurrency.svg";
+import mainImageUrl from "./assets/images/main_image.jpg";
+import { SiteLayout } from "./components/SiteLayout.jsx";
 
 const labs = [
   {
@@ -12,7 +13,7 @@ const labs = [
     description: "Explore buckets, entries, hash codes, collisions, resizing, and lookup behavior.",
     href: "labs/dictionary.html",
     difficulty: "Intermediate",
-    iconClass: "sprite-collections"
+    iconUrl: collectionsIconUrl
   },
   {
     title: "ConcurrentDictionary",
@@ -20,7 +21,7 @@ const labs = [
     description: "Explore thread-safe reads, striped locking, tables, buckets, locks, and grow behavior.",
     href: "labs/concurrent-dictionary.html",
     difficulty: "Advanced",
-    iconClass: "sprite-concurrency",
+    iconUrl: concurrencyIconUrl,
     badgeClass: "badge-blue"
   }
 ];
@@ -47,11 +48,9 @@ export default function App() {
   }, [currentPage]);
 
   return (
-    <div className="site-shell">
-      <SiteHeader currentPage={currentPage} />
-      <main className="main-content">{renderPage(currentPage)}</main>
-      <SiteFooter currentPage={currentPage} />
-    </div>
+    <SiteLayout currentPage={currentPage}>
+      {renderPage(currentPage)}
+    </SiteLayout>
   );
 }
 
@@ -68,68 +67,6 @@ function renderPage(currentPage) {
     default:
       return <HomePage />;
   }
-}
-
-function SiteHeader({ currentPage }) {
-  return (
-    <header className="site-header">
-      <div className="container header-inner">
-        <a
-          className="brand"
-          href="index.html"
-          aria-label="DotNet Visual Lab home"
-          {...trackingProps({ category: "navigation", label: "home_brand", placement: "site_header" })}
-        >
-          <img className="brand-icon" src={logoUrl} alt="" />
-          <span className="brand-text">DotNet Visual Lab</span>
-          <span className="version-badge">v0.1</span>
-        </a>
-        <nav className="site-nav" aria-label="Primary navigation">
-          <NavLink href="labs.html" currentPage={currentPage} label="header_labs" placement="site_header">Labs</NavLink>
-          <NavLink href="methodology.html" currentPage={currentPage} label="header_methodology" placement="site_header">Methodology</NavLink>
-          <a
-            href={withUtm(githubUrl, "header_github", "site_navigation")}
-            {...trackingProps({ category: "external_link", label: "header_github", placement: "site_header" })}
-          >
-            GitHub
-          </a>
-        </nav>
-      </div>
-    </header>
-  );
-}
-
-function SiteFooter({ currentPage }) {
-  return (
-    <footer className="site-footer">
-      <div className="container footer-inner">
-        <span>Copyright 2026 DotNet Visual Lab.</span>
-        <nav className="footer-links" aria-label="Footer navigation">
-          <NavLink href="about-author.html" currentPage={currentPage} label="footer_about_author" placement="site_footer">About the author</NavLink>
-          <NavLink href="privacy.html" currentPage={currentPage} label="footer_privacy" placement="site_footer">Privacy</NavLink>
-          <a
-            href={withUtm(githubUrl, "footer_github", "site_navigation")}
-            {...trackingProps({ category: "external_link", label: "footer_github", placement: "site_footer" })}
-          >
-            GitHub
-          </a>
-        </nav>
-      </div>
-    </footer>
-  );
-}
-
-function NavLink({ href, currentPage, children, label, placement }) {
-  const isCurrent = href === currentPage;
-  return (
-    <a
-      href={href}
-      aria-current={isCurrent ? "page" : undefined}
-      {...trackingProps({ category: "navigation", label, placement })}
-    >
-      {children}
-    </a>
-  );
 }
 
 function HomePage() {
@@ -152,14 +89,6 @@ function HomePage() {
               <span className="button-mark button-mark-logo" aria-hidden="true"></span>
               Explore Labs
             </a>
-            <a
-              className="button"
-              href={withUtm(githubUrl, "hero_github", "home_cta")}
-              {...trackingProps({ category: "external_link", label: "hero_github", placement: "home_hero" })}
-            >
-              <span className="button-mark button-mark-github" aria-hidden="true">GH</span>
-              View on GitHub
-            </a>
           </div>
         </div>
         <div className="hero-visual" aria-hidden="true">
@@ -177,7 +106,7 @@ function HomePage() {
 
       <section className="section container">
         <div className="methodology-banner">
-          <span className="sprite-icon sprite-code" aria-hidden="true"></span>
+          <img className="topic-icon methodology-icon" src={codeIconUrl} alt="" />
           <div>
             <h2>Built for accuracy</h2>
             <p>Every lab is an educational model checked against .NET source code, Microsoft documentation, and local experiments. Simplifications are documented where needed.</p>
@@ -228,7 +157,7 @@ function LabCard({ lab }) {
       href={lab.href}
       {...trackingProps({ category: "lab_card", label: `open_${lab.title}`, placement: "lab_grid" })}
     >
-      <span className={`sprite-icon ${lab.iconClass}`} aria-hidden="true"></span>
+      <img className="topic-icon" src={lab.iconUrl} alt="" />
       <div className="lab-card-body">
         <span className={`badge ${lab.badgeClass ?? ""}`}>{lab.difficulty}</span>
         <h3>{lab.title}<span className="lab-title-tail"> {lab.titleTail}</span></h3>
@@ -294,7 +223,7 @@ function PrivacyPage() {
         <div className="content-panel">
           <p>This site uses Google Analytics to understand aggregate usage and improve the educational labs over time.</p>
           <p>No login, user accounts, comments, or account profiles are used by DotNet Visual Lab.</p>
-          <p>External links may lead to GitHub, YouTube, Microsoft documentation, or other documentation sites. Those sites have their own privacy practices.</p>
+          <p>External links may lead to Microsoft documentation, source references, or other documentation sites. Those sites have their own privacy practices.</p>
         </div>
       </section>
     </>

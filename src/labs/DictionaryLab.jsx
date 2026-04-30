@@ -476,9 +476,8 @@ export default function DictionaryLab() {
 
   return (
     <>
-      <main className="lab-app">
+      <div className="lab-app">
         <LabHeader
-          activeLab="dictionary"
           title={
             <>
               <span className="type-title-name">Dictionary</span>
@@ -682,7 +681,7 @@ export default function DictionaryLab() {
             </li>
           </ol>
         </section>
-      </main>
+      </div>
 
       <Toast message={toast} />
     </>

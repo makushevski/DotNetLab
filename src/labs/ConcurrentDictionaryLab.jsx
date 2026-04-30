@@ -510,9 +510,8 @@ export default function ConcurrentDictionaryLab() {
 
   return (
     <>
-      <main className="lab-app">
+      <div className="lab-app">
         <LabHeader
-          activeLab="concurrent"
           title={
             <>
               <span className="type-title-name">
@@ -739,7 +738,7 @@ export default function ConcurrentDictionaryLab() {
             </li>
           </ol>
         </section>
-      </main>
+      </div>
 
       <Toast message={toast} />
     </>

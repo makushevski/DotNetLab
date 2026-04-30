@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { GoogleAnalytics } from "./analytics/GoogleAnalytics.jsx";
 import LabApp from "./labs/LabApp.jsx";
+import "./styles/styles.css";
 import "./styles/labs.css";
 
 createRoot(document.getElementById("root")).render(

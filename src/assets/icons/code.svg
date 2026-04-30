@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Code">
+  <defs>
+    <linearGradient id="code" x1="12" y1="14" x2="52" y2="50" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#7c5cff"/>
+    </linearGradient>
+  </defs>
+  <path fill="none" stroke="url(#code)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" d="m24 21-11 11 11 11m16-22 11 11-11 11M35 16 29 48"/>
+</svg>
