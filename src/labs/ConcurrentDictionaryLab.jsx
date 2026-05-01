@@ -237,7 +237,7 @@ export default function ConcurrentDictionaryLab() {
   const locked = timeline.length > 0 && timelineIndex !== timeline.length - 1;
 
   useEffect(() => {
-    document.title = "ConcurrentDictionary<TKey,TValue> visual lab";
+    document.title = "How ConcurrentDictionary Works Internally in C# and .NET";
     return () => window.clearTimeout(toastTimerRef.current);
   }, []);
 
@@ -521,8 +521,8 @@ export default function ConcurrentDictionaryLab() {
             </>
           }
         >
-          This model shows the main runtime pieces: tables, bucket arrays, lock stripes, and per-lock counts. <code>TryAdd</code> takes the
-          bucket lock, <code>TryGetValue</code> reads the chain without a lock.
+          How does ConcurrentDictionary work internally in C# and .NET? Follow tables, bucket arrays, lock striping, per-lock counts, nodes, and grow behavior.{" "}
+          <code>TryAdd</code> takes the bucket lock, <code>TryGetValue</code> reads the chain without a lock.
         </LabHeader>
 
         <section className="controls concurrent-controls" aria-label="Operations">
@@ -610,7 +610,7 @@ export default function ConcurrentDictionaryLab() {
             <div className="surface-head">
               <div className="surface-title">
                 <h2>Runtime shape</h2>
-                <p>This simplified model shows tables, locks, buckets, and node chains for TryAdd and TryGetValue.</p>
+                <p>This simplified model explains ConcurrentDictionary internals: tables, locks, buckets, node chains, TryAdd, TryGetValue, thread-safe reads, and table growth.</p>
               </div>
               <Metrics
                 focusSet={focusSet}
@@ -689,9 +689,17 @@ export default function ConcurrentDictionaryLab() {
         </section>
 
         <section className="notes">
+          <h2>Questions this lab answers</h2>
+          <ul>
+            <li>How does ConcurrentDictionary work internally in C# and .NET?</li>
+            <li>Is ConcurrentDictionary thread safe, and does it lock on read?</li>
+            <li>How does ConcurrentDictionary handle locks and lock striping?</li>
+            <li>What happens inside ConcurrentDictionary TryAdd and TryGetValue?</li>
+          </ul>
+
           <h2>What is intentionally simplified</h2>
           <ol>
-            <li>The hash function is stable and demo-only so the visualization is reproducible.</li>
+            <li>The hash function is stable and demo-only so the walkthrough is reproducible.</li>
             <li>The model shows lock striping and grow as an educational sequence, without real multithreaded interleaving.</li>
             <li>
               .NET 10 source:{" "}

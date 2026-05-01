@@ -15,7 +15,7 @@ const labs = [
   {
     title: "Dictionary<TKey, TValue>",
     titleTail: "Internals",
-    description: "Explore buckets, entries, hash codes, collisions, resizing, and lookup behavior.",
+    description: "Learn how Dictionary works in .NET with buckets, entries, hash codes, collisions, resizing, Add, and TryGetValue.",
     href: "labs/dictionary.html",
     difficulty: "Intermediate",
     iconUrl: collectionsIconUrl
@@ -23,7 +23,7 @@ const labs = [
   {
     title: "ConcurrentDictionary",
     titleTail: "Internals",
-    description: "Explore thread-safe reads, striped locking, tables, buckets, locks, and grow behavior.",
+    description: "Learn how ConcurrentDictionary works in .NET with thread-safe reads, striped locks, buckets, nodes, TryAdd, and table growth.",
     href: "labs/concurrent-dictionary.html",
     difficulty: "Advanced",
     iconUrl: concurrencyIconUrl,
@@ -32,8 +32,8 @@ const labs = [
 ];
 
 const pageMeta = {
-  "index.html": "DotNet Visual Lab",
-  "labs.html": "Labs | DotNet Visual Lab",
+  "index.html": "DotNet Visual Lab | .NET Internals Explained",
+  "labs.html": ".NET Internals Labs and C# Runtime Examples | DotNet Visual Lab",
   "methodology.html": "Methodology | DotNet Visual Lab",
   "about-author.html": "Denis Makushevskii | DotNet Visual Lab",
   "privacy.html": "Privacy | DotNet Visual Lab"
@@ -84,7 +84,7 @@ function HomePage() {
             <span className="title-line">Understand .NET</span>
             <span className="title-line">internals <span className="accent-text">visually</span></span>
           </h1>
-          <p className="hero-copy">Interactive visual labs for collections, concurrency, async/await, runtime behavior, memory, and performance.</p>
+          <p className="hero-copy">Learn .NET internals through source-aligned labs that explain C# runtime behavior, implementation details, collections, concurrency, memory, and performance concepts.</p>
           <div className="hero-actions">
             <a
               className="button button-primary"
@@ -104,7 +104,7 @@ function HomePage() {
       <section className="section container" id="featured-labs">
         <div className="section-header">
           <h2 className="section-title">Available Labs</h2>
-          <p className="section-copy">Start with the first interactive visualizations.</p>
+          <p className="section-copy">Start with practical .NET internals examples and expand into deeper C# runtime behavior over time.</p>
         </div>
         <LabGrid />
       </section>
@@ -135,7 +135,7 @@ function LabsPage() {
       <section className="page-hero container">
         <p className="eyebrow">Interactive .NET Internals</p>
         <h1>Labs</h1>
-        <p className="page-copy">Small focused visualizations that make runtime data structures and behavior easier to inspect, reason about, and discuss.</p>
+        <p className="page-copy">Practical .NET internals labs and C# runtime examples for developers who want to understand implementation details, collections, concurrency, memory behavior, and performance tradeoffs.</p>
       </section>
 
       <section className="section container">

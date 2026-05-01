@@ -221,7 +221,7 @@ export default function DictionaryLab() {
   const locked = timeline.length > 0 && timelineIndex !== timeline.length - 1;
 
   useEffect(() => {
-    document.title = "Dictionary<TKey,TValue> visual lab";
+    document.title = "How Dictionary Works Internally in C# and .NET";
     return () => window.clearTimeout(toastTimerRef.current);
   }, []);
 
@@ -485,8 +485,8 @@ export default function DictionaryLab() {
             </>
           }
         >
-          One thread, one bucket array, and one entry table. The visualization follows{" "}
-          <code>TryInsert</code> for <code>Add</code> and <code>FindValue</code> for <code>TryGetValue</code>.
+          How does Dictionary work internally in C# and .NET? Follow one bucket array, one entry table, hash collisions, resizing,
+          <code>TryInsert</code> for <code>Add</code>, and <code>FindValue</code> for <code>TryGetValue</code>.
         </LabHeader>
 
         <section className="controls dictionary-controls" aria-label="Operations">
@@ -561,7 +561,7 @@ export default function DictionaryLab() {
             <div className="surface-head">
               <div className="surface-title">
                 <h2>Runtime shape</h2>
-                <p>This simplified model shows the fields and chains involved in Add and TryGetValue.</p>
+                <p>This simplified model explains Dictionary internals: buckets, entries, hash codes, collision chains, Add, TryGetValue, and lookup performance.</p>
               </div>
               <Metrics
                 focusSet={focusSet}
@@ -633,9 +633,17 @@ export default function DictionaryLab() {
         </section>
 
         <section className="notes">
+          <h2>Questions this lab answers</h2>
+          <ul>
+            <li>How does Dictionary work internally in C# and .NET?</li>
+            <li>How does Dictionary handle hash collisions in C#?</li>
+            <li>How does Dictionary resize buckets and entries?</li>
+            <li>What happens inside Dictionary Add and TryGetValue?</li>
+          </ul>
+
           <h2>What is intentionally simplified</h2>
           <ol>
-            <li>The hash function is stable and demo-only so the visualization is reproducible.</li>
+            <li>The hash function is stable and demo-only so the walkthrough is reproducible.</li>
             <li>The model does not fully implement remove/free-list, but keeps those fields next to the real names.</li>
             <li>
               .NET 10 source:{" "}

@@ -3,8 +3,71 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="How does ConcurrentDictionary work internally in C# and .NET? Follow TryAdd, TryGetValue, lock striping, buckets, nodes, thread-safe reads, and table growth.">
+  <meta name="keywords" content="how does concurrentdictionary work in c#, how concurrentdictionary works in .net, concurrentdictionary internals, .net concurrentdictionary internals, c# concurrentdictionary internals, is concurrentdictionary thread safe, how does concurrentdictionary handle locks, concurrentdictionary lock striping, concurrentdictionary vs dictionary with lock, concurrentdictionary tryadd internal implementation, does concurrentdictionary lock on read">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <link rel="canonical" href="https://dotnetvisuallab.com/labs/concurrent-dictionary.html">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <title>ConcurrentDictionary&lt;TKey,TValue&gt; visual lab</title>
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="DotNet Visual Lab">
+  <meta property="og:title" content="How ConcurrentDictionary Works Internally in C# and .NET">
+  <meta property="og:description" content="How does ConcurrentDictionary work internally in C# and .NET? Follow TryAdd, TryGetValue, lock striping, buckets, nodes, thread-safe reads, and table growth.">
+  <meta property="og:url" content="https://dotnetvisuallab.com/labs/concurrent-dictionary.html">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="How ConcurrentDictionary Works Internally in C# and .NET">
+  <meta name="twitter:description" content="How does ConcurrentDictionary work internally in C# and .NET? Follow TryAdd, TryGetValue, lock striping, buckets, nodes, thread-safe reads, and table growth.">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": [
+        "WebPage",
+        "LearningResource"
+      ],
+      "@id": "https://dotnetvisuallab.com/labs/concurrent-dictionary.html#webpage",
+      "url": "https://dotnetvisuallab.com/labs/concurrent-dictionary.html",
+      "name": "How ConcurrentDictionary Works Internally in C# and .NET",
+      "description": "How does ConcurrentDictionary work internally in C# and .NET? Follow TryAdd, TryGetValue, lock striping, buckets, nodes, thread-safe reads, and table growth.",
+      "keywords": [
+        "how does ConcurrentDictionary work in C#",
+        "how ConcurrentDictionary works in .NET",
+        "ConcurrentDictionary internals",
+        "C# ConcurrentDictionary internals",
+        ".NET ConcurrentDictionary internals",
+        "is ConcurrentDictionary thread safe",
+        "how does ConcurrentDictionary handle locks",
+        "ConcurrentDictionary lock striping",
+        "ConcurrentDictionary vs Dictionary with lock",
+        "ConcurrentDictionary TryAdd internal implementation",
+        "does ConcurrentDictionary lock on read"
+      ],
+      "inLanguage": "en",
+      "isPartOf": {
+        "@id": "https://dotnetvisuallab.com/#website"
+      },
+      "learningResourceType": "Interactive lab",
+      "educationalLevel": "Advanced",
+      "author": {
+        "@type": "Person",
+        "name": "Denis Makushevskii",
+        "url": "https://dotnetvisuallab.com/about-author.html"
+      },
+      "about": [
+        {
+          "@type": "Thing",
+          "name": ".NET ConcurrentDictionary"
+        },
+        {
+          "@type": "Thing",
+          "name": "thread-safe collections"
+        },
+        {
+          "@type": "Thing",
+          "name": "striped locking"
+        }
+      ]
+    }
+  </script>
+  <title>How ConcurrentDictionary Works Internally in C# and .NET</title>
 </head>
 <body>
   <div id="root"></div>

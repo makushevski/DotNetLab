@@ -702,7 +702,12 @@ h1 {
   margin-bottom: 10px;
 }
 
-.notes ol {
+.notes h2:not(:first-child) {
+  margin-top: 16px;
+}
+
+.notes ol,
+.notes ul {
   margin: 0;
   padding-left: 20px;
   color: var(--muted);
