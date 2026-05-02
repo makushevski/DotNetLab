@@ -51,12 +51,14 @@ function cloneDictionaryModel(source) {
   return {
     ...source,
     buckets: source.buckets ? source.buckets.slice() : null,
-    entries: source.entries ? source.entries.map((entry) => (entry ? { ...entry } : null)) : null,
+    entries: source.entries ? Array.from(source.entries, (entry) => (entry ? { ...entry } : null)) : null,
     log: source.log.map((item) => ({ ...item })),
     resize: source.resize
       ? {
           oldBuckets: source.resize.oldBuckets.slice(),
           newBuckets: source.resize.newBuckets.slice(),
+          oldEntries: source.resize.oldEntries ? source.resize.oldEntries.slice() : [],
+          newEntries: source.resize.newEntries ? source.resize.newEntries.slice() : [],
           movingEntry: source.resize.movingEntry,
           oldSize: source.resize.oldSize,
           newSize: source.resize.newSize
@@ -147,24 +149,28 @@ function resizeFor(model, timeline, hashCode) {
   const oldSize = model.entries.length;
   const newSize = nextPrime(oldSize);
   const oldBuckets = model.buckets.slice();
+  const oldEntries = model.entries.map((entry, index) => (entry ? index : null));
+  const copiedEntries = Array.from({ length: newSize }, (_, index) => (index < oldSize ? model.entries[index] : null));
 
   model.resize = {
     oldBuckets,
     newBuckets: Array(newSize).fill(0),
+    oldEntries,
+    newEntries: copiedEntries.map((entry, index) => (entry ? index : null)),
     movingEntry: null,
     oldSize,
     newSize
   };
   model.buckets = Array(newSize).fill(0);
-  model.entries.length = newSize;
+  model.entries = copiedEntries;
 
   stage(
     model,
     timeline,
     `Resize(${newSize})`,
-    "_count == _entries.Length, so Dictionary grows the arrays and rebuilds the bucket chains.",
-    `Resize();\nint[] newBuckets = new int[${newSize}];\nEntry[] entries = _entries;`,
-    ["resizeLane", "field-count"]
+    "_count == _entries.Length, so Dictionary grows both arrays, copies entries, and rebuilds the bucket index chains.",
+    `Resize();\nint[] newBuckets = new int[${newSize}];\nEntry[] entries = new Entry[${newSize}];\nArray.Copy(_entries, entries, _count);`,
+    ["resizeLane", "field-buckets", "field-entries", "field-count"]
   );
 
   for (let i = 0; i < model.count; i += 1) {
@@ -719,9 +725,7 @@ function DictionaryBuckets({ model, focusSet }) {
 function DictionaryBucket({ model, bucketNo, value, focusSet }) {
   const id = `bucket-${bucketNo}`;
   const className = focusClass("bucket dictionary-bucket", id, focusSet, model.activeBucket === bucketNo ? "active" : "");
-  const entryIndex = value - 1;
   const indexChain = indexChainFor(model, bucketNo);
-  const entriesRead = indexChain.filter((index) => index >= 0);
 
   return (
     <div id={id} className={className}>
@@ -739,16 +743,27 @@ function DictionaryBucket({ model, bucketNo, value, focusSet }) {
 }
 
 function ResizeLane({ resize }) {
+  const formatEntryIndex = (value) => (value === null ? "-" : String(value));
+
   return (
     <section className={resize ? "resize-lane visible" : "resize-lane"} id="resizeLane">
       <SectionTitle title="Resize lane" titleHint="Resize()">
         {resize ? `${resize.oldSize} -> ${resize.newSize}` : ""}
       </SectionTitle>
       {resize ? (
-        <div className="resize-map">
-          <MiniArray values={resize.oldBuckets} movingItem={resize.movingEntry === null ? null : resize.movingEntry + 1} />
-          <div className="arrow">-&gt;</div>
-          <MiniArray values={resize.newBuckets} movingItem={resize.movingEntry === null ? null : resize.movingEntry + 1} />
+        <div className="resize-pairs">
+          <div className="resize-pair-title">_buckets int[]</div>
+          <div className="resize-map">
+            <MiniArray values={resize.oldBuckets} movingItem={resize.movingEntry === null ? null : resize.movingEntry + 1} />
+            <div className="arrow">-&gt;</div>
+            <MiniArray values={resize.newBuckets} movingItem={resize.movingEntry === null ? null : resize.movingEntry + 1} />
+          </div>
+          <div className="resize-pair-title">_entries Entry[] indexes</div>
+          <div className="resize-map">
+            <MiniArray values={resize.oldEntries} movingItem={resize.movingEntry} formatValue={formatEntryIndex} />
+            <div className="arrow">-&gt;</div>
+            <MiniArray values={resize.newEntries} movingItem={resize.movingEntry} formatValue={formatEntryIndex} />
+          </div>
         </div>
       ) : null}
     </section>
@@ -777,7 +792,7 @@ function EntriesTable({ model, focusSet }) {
               <td className="free" colSpan="5">Entries are not allocated yet</td>
             </tr>
           ) : (
-            model.entries.map((entry, index) => {
+            Array.from(model.entries).map((entry, index) => {
               const id = `entry-${index}`;
               const active = model.activeEntry === index || model.compareEntry === index;
               const className = focusClass("entry-row", id, focusSet, `${active ? "active" : ""} ${entry ? "" : "free"}`);

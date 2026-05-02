@@ -557,13 +557,6 @@ h1 {
   font: 900 24px/1 Consolas, Monaco, monospace;
 }
 
-.bucket-derived {
-  padding: 7px 9px;
-  color: var(--muted);
-  font: 800 12px/1.25 Consolas, Monaco, monospace;
-  overflow-wrap: anywhere;
-}
-
 .bucket-index-chain {
   display: grid;
   gap: 3px;
@@ -572,8 +565,7 @@ h1 {
   overflow-wrap: anywhere;
 }
 
-.bucket-index-chain span,
-.bucket-entry-read {
+.bucket-index-chain span {
   color: #8ea0b2;
   font-size: 12px;
   font-weight: 800;
@@ -582,12 +574,6 @@ h1 {
 .bucket-index-chain strong {
   color: var(--text);
   font-size: 13px;
-}
-
-.bucket-entry-read {
-  padding: 0 9px 8px;
-  font-family: Consolas, Monaco, monospace;
-  overflow-wrap: anywhere;
 }
 
 .chain {
@@ -699,6 +685,20 @@ h1 {
 .resize-lane.visible,
 .grow-lane.visible {
   display: block;
+}
+
+.resize-pairs {
+  display: grid;
+  gap: 10px;
+}
+
+.resize-pair-title {
+  color: var(--muted);
+  font: 900 12px/1.25 Consolas, Monaco, monospace;
+}
+
+.resize-pair-title:not(:first-child) {
+  margin-top: 2px;
 }
 
 .resize-map,
