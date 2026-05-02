@@ -534,6 +534,10 @@ h1 {
   overflow: hidden;
 }
 
+.dictionary-bucket {
+  min-height: 112px;
+}
+
 .bucket-head {
   display: flex;
   justify-content: space-between;
@@ -542,6 +546,48 @@ h1 {
   border-bottom: 1px solid var(--line);
   color: var(--muted);
   font: 800 12px Consolas, Monaco, monospace;
+}
+
+.bucket-int-value {
+  display: grid;
+  min-height: 42px;
+  place-items: center;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  font: 900 24px/1 Consolas, Monaco, monospace;
+}
+
+.bucket-derived {
+  padding: 7px 9px;
+  color: var(--muted);
+  font: 800 12px/1.25 Consolas, Monaco, monospace;
+  overflow-wrap: anywhere;
+}
+
+.bucket-index-chain {
+  display: grid;
+  gap: 3px;
+  padding: 0 9px 7px;
+  font-family: Consolas, Monaco, monospace;
+  overflow-wrap: anywhere;
+}
+
+.bucket-index-chain span,
+.bucket-entry-read {
+  color: #8ea0b2;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.bucket-index-chain strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.bucket-entry-read {
+  padding: 0 9px 8px;
+  font-family: Consolas, Monaco, monospace;
+  overflow-wrap: anywhere;
 }
 
 .chain {

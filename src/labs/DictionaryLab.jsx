@@ -75,19 +75,7 @@ function capacity(model) {
   return model.entries ? model.entries.length : 0;
 }
 
-function entryLabel(index) {
-  return index < 0 ? "-1" : `e${index}`;
-}
-
-function bucketIndex(model, hashCode, length = model.buckets.length) {
-  return hashCode % length;
-}
-
-function formatBucketFormula(hashCode, length, bucket) {
-  return `${hashCode} % ${length} = ${bucket}`;
-}
-
-function chainFor(model, bucket) {
+function indexChainFor(model, bucket) {
   const chain = [];
   if (!model.buckets || !model.entries) return chain;
 
@@ -97,12 +85,21 @@ function chainFor(model, bucket) {
   while (index >= 0 && !guard.has(index)) {
     guard.add(index);
     const entry = model.entries[index];
-    if (!entry) break;
     chain.push(index);
+    if (!entry) break;
     index = entry.next;
   }
 
+  chain.push(index);
   return chain;
+}
+
+function bucketIndex(model, hashCode, length = model.buckets.length) {
+  return hashCode % length;
+}
+
+function formatBucketFormula(hashCode, length, bucket) {
+  return `${hashCode} % ${length} = ${bucket}`;
 }
 
 function beginOperation(model) {
@@ -561,7 +558,7 @@ export default function DictionaryLab() {
             <div className="surface-head">
               <div className="surface-title">
                 <h2>Runtime shape</h2>
-                <p>This simplified model explains Dictionary internals: buckets, entries, hash codes, collision chains, Add, TryGetValue, and lookup performance.</p>
+                <p>This simplified model explains Dictionary internals: int buckets, entries, hash codes, collision chains, Add, TryGetValue, and lookup performance.</p>
               </div>
               <Metrics
                 focusSet={focusSet}
@@ -613,13 +610,6 @@ export default function DictionaryLab() {
                       id: "field-comparer",
                       hint: "IEqualityComparer<string>? _comparer",
                       valueHint: "EqualityComparer<string>.Default"
-                    },
-                    {
-                      label: "Fast modulo multiplier",
-                      value: model.fastModMultiplier ? "ready" : "not initialized",
-                      id: "field-fastMod",
-                      hint: "ulong _fastModMultiplier",
-                      valueHint: model.fastModMultiplier || "not initialized"
                     }
                   ]}
                 />
@@ -706,7 +696,7 @@ function DictionaryBuckets({ model, focusSet }) {
         titleHint="int[] _buckets"
         detailHint={model.buckets ? "0 = empty, value - 1 = Entry index" : "_buckets == null"}
       >
-        {model.buckets ? "hashCode % length gives bucket" : "not allocated"}
+        {model.buckets ? "hash picks bucket, ints pick entries indexes" : "not allocated"}
       </SectionTitle>
       <div className="bucket-grid" style={{ "--cols": Math.min(Math.max(length, 1), 7) }}>
         {!model.buckets ? (
@@ -728,31 +718,21 @@ function DictionaryBuckets({ model, focusSet }) {
 
 function DictionaryBucket({ model, bucketNo, value, focusSet }) {
   const id = `bucket-${bucketNo}`;
-  const className = focusClass("bucket", id, focusSet, model.activeBucket === bucketNo ? "active" : "");
-  const chain = chainFor(model, bucketNo);
+  const className = focusClass("bucket dictionary-bucket", id, focusSet, model.activeBucket === bucketNo ? "active" : "");
+  const entryIndex = value - 1;
+  const indexChain = indexChainFor(model, bucketNo);
+  const entriesRead = indexChain.filter((index) => index >= 0);
 
   return (
     <div id={id} className={className}>
       <div className="bucket-head">
         <span>[{bucketNo}]</span>
-        <span>{value}</span>
+        <span>int</span>
       </div>
-      <div className="chain">
-        {!chain.length ? (
-          <div className="empty">empty</div>
-        ) : (
-          chain.map((index) => {
-            const entry = model.entries[index];
-            const active = model.activeEntry === index || model.compareEntry === index;
-            return (
-              <div key={index} className={active ? "node active" : "node"}>
-                <div className="node-id">e{index} next:{entryLabel(entry.next)}</div>
-                <div className="node-key">{entry.key}</div>
-                <div className="node-value">{entry.value}</div>
-              </div>
-            );
-          })
-        )}
+      <div className="bucket-int-value">{value}</div>
+      <div className="bucket-index-chain">
+        <span>int chain</span>
+        <strong>{indexChain.join(" -> ")}</strong>
       </div>
     </div>
   );
@@ -803,7 +783,7 @@ function EntriesTable({ model, focusSet }) {
               const className = focusClass("entry-row", id, focusSet, `${active ? "active" : ""} ${entry ? "" : "free"}`);
               return (
                 <tr key={id} id={id} className={className}>
-                  <td>e{index}</td>
+                  <td>{index}</td>
                   <td>{entry ? entry.hashCode : "-"}</td>
                   <td>{entry ? entry.next : "-"}</td>
                   <td>{entry ? entry.key : "free slot"}</td>
